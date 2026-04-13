@@ -12,6 +12,7 @@ export type Monteur = {
   kuerzel: string;
   heimatort: string;
   heimatKoordinaten: { lat: number; lng: number };
+  heimNiederlassungId: string | null;
   qualifikationen: Qualifikation[];
   rolle?: string;
   verfuegbarAb: string;
@@ -26,9 +27,10 @@ export const monteure: Monteur[] = [
     id: "m1",
     name: "Michael Brandt",
     kuerzel: "MB",
-    heimatort: "Böblingen",
+    heimatort: "Renningen",
     rolle: "Richtmeister",
-    heimatKoordinaten: { lat: 48.683, lng: 9.012 },
+    heimatKoordinaten: { lat: 48.7681, lng: 8.9367 },
+    heimNiederlassungId: "nl-leonberg",
     qualifikationen: ["Kran-Schein", "Hydraulik", "Stapler"],
     verfuegbarAb: "13.04.2026",
     g25Gueltig: "08/2026",
@@ -40,8 +42,9 @@ export const monteure: Monteur[] = [
     id: "m2",
     name: "Thomas Weigl",
     kuerzel: "TW",
-    heimatort: "Sindelfingen",
-    heimatKoordinaten: { lat: 48.707, lng: 9.005 },
+    heimatort: "Kassel",
+    heimatKoordinaten: { lat: 51.3127, lng: 9.4797 },
+    heimNiederlassungId: null,
     qualifikationen: ["Schweißer-Zert", "Hydraulik", "Elektrofachkraft"],
     verfuegbarAb: "13.04.2026",
     g25Gueltig: "11/2026",
@@ -51,8 +54,9 @@ export const monteure: Monteur[] = [
     id: "m3",
     name: "Jan Oskar Petersen",
     kuerzel: "JP",
-    heimatort: "Leonberg",
-    heimatKoordinaten: { lat: 48.798, lng: 9.013 },
+    heimatort: "Achim (bei Bremen)",
+    heimatKoordinaten: { lat: 53.1106, lng: 8.8919 },
+    heimNiederlassungId: "nl-bremen",
     qualifikationen: ["Kran-Schein", "Höhenzugang", "Stapler"],
     verfuegbarAb: "13.04.2026",
     g25Gueltig: "05/2026",
@@ -60,13 +64,13 @@ export const monteure: Monteur[] = [
     erfahrungKunde: "1 Einsatz bei KUKA",
     stundensatz: 58,
   },
-  // Alternativen / nicht ausgewählt — für Demo-Depth
   {
     id: "m4",
     name: "Ali Demir",
     kuerzel: "AD",
     heimatort: "Dietzenbach",
-    heimatKoordinaten: { lat: 50.006, lng: 8.777 },
+    heimatKoordinaten: { lat: 50.0061, lng: 8.7773 },
+    heimNiederlassungId: "nl-dietzenbach",
     qualifikationen: ["Schweißer-Zert", "Elektrofachkraft"],
     verfuegbarAb: "20.04.2026",
     g25Gueltig: "01/2027",
@@ -78,6 +82,7 @@ export const monteure: Monteur[] = [
     kuerzel: "KS",
     heimatort: "Leipzig",
     heimatKoordinaten: { lat: 51.34, lng: 12.374 },
+    heimNiederlassungId: "nl-chemnitz",
     qualifikationen: ["Hydraulik", "Stapler"],
     verfuegbarAb: "13.04.2026",
     g25Gueltig: "02/2026",

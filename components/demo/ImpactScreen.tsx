@@ -1,36 +1,45 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { RotateCcw, Search, Scale, ShieldCheck, Route, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 export function ImpactScreen({ onReset }: { onReset: () => void }) {
+  const [videoEnded, setVideoEnded] = useState(false);
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[var(--muted)]/30 py-16 px-6">
       <div className="max-w-5xl mx-auto">
-        {/* Hero — Endframe Bild des zufriedenen Projektleiters */}
+        {/* Hero — Video: Freigabe → Produktionshalle */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="mb-12 overflow-hidden border border-[var(--border)] bg-white"
+          className="mb-12 overflow-hidden border border-[var(--border)] bg-black"
         >
-          <Image
-            src="/hero-endframe.jpg"
-            alt="Projektleiter nach Freigabe — Einsatz-Reise geplant"
-            width={1920}
-            height={1080}
+          <video
+            src="/impact.mp4"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
             className="w-full h-auto block"
-            priority
+            onEnded={(e) => {
+              e.currentTarget.pause();
+              setVideoEnded(true);
+            }}
           />
         </motion.div>
 
+        <AnimatePresence>
+        {videoEnded && (
+        <>
         {/* Was der Agent macht */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.1 }}
           className="mb-12"
         >
           <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
@@ -82,7 +91,7 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
               key={item.title}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + i * 0.1 }}
+              transition={{ delay: 0.2 + i * 0.08 }}
               className="hairline border bg-white p-6 relative"
             >
               <div className="absolute top-4 right-4 text-[11px] font-mono text-[var(--muted-foreground)]">
@@ -104,11 +113,78 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           ))}
         </div>
 
+        {/* Infrastruktur */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-12"
+        >
+          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
+            So ist das System gebaut
+          </div>
+          <h2 className="text-[28px] md:text-[34px] leading-[1.1] tracking-[-0.02em] font-semibold text-[var(--foreground)] max-w-3xl mb-6">
+            Nach außen eine Oberfläche — dahinter eine saubere Infrastruktur.
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="hairline border bg-white p-6">
+              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
+                Frontend
+              </div>
+              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
+                Ein Dashboard für den Projektleiter.
+              </div>
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+                Keine neuen Tools zum Lernen. Einsätze planen, Vorschläge
+                prüfen, freigeben — alles in einer Oberfläche.
+              </div>
+            </div>
+            <div className="hairline border bg-white p-6">
+              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
+                Agent-Layer
+              </div>
+              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
+                Der Agent als Recherche- und Vergleichs-Schicht.
+              </div>
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+                Läuft parallel gegen interne und externe Quellen, scort
+                Optionen und bereitet eine begründete Empfehlung vor.
+              </div>
+            </div>
+            <div className="hairline border bg-white p-6">
+              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
+                Integration
+              </div>
+              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
+                Angebunden an SCHOLPPs Systeme.
+              </div>
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+                Betriebsordnung, Monteur-Stammdaten und Equipment-Listen
+                werden direkt aus bestehenden Quellen gelesen — keine
+                Parallel-Datenhaltung.
+              </div>
+            </div>
+            <div className="hairline border bg-white p-6">
+              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
+                Audit & Governance
+              </div>
+              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
+                Jeder Schritt protokolliert.
+              </div>
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+                Eingaben, abgefragte Quellen, Scoring, Freigabe — lückenlos
+                nachvollziehbar. Hosting in Europa, Daten bleiben bei SCHOLPP.
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Bottom — CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 0.8 }}
           className="hairline border bg-[var(--foreground)] text-white p-8 md:p-10"
         >
           <div className="max-w-2xl">
@@ -125,6 +201,9 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
             </p>
           </div>
         </motion.div>
+        </>
+        )}
+        </AnimatePresence>
 
         <div className="mt-10 text-center">
           <button

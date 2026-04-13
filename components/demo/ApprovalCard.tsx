@@ -64,19 +64,7 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
             Kern · Reise-Koordination
           </div>
 
-          {/* 1. Anreise-Pooling (Multi-Origin) */}
-          <div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
-              <Route size={12} />
-              Anreise · Pooling + Fahrzeug-Optimierung
-            </div>
-            <RouteMap />
-            <div className="mt-4">
-              <VehicleBlock />
-            </div>
-          </div>
-
-          {/* 2. Hotel-Recherche */}
+          {/* 1. Hotel-Recherche */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
@@ -142,6 +130,18 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
                   </motion.div>
                 )}
               </AnimatePresence>
+            </div>
+          </div>
+
+          {/* 2. Anreise-Pooling */}
+          <div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
+              <Route size={12} />
+              Anreise · Pooling + Fahrzeug-Optimierung
+            </div>
+            <RouteMap />
+            <div className="mt-4">
+              <VehicleBlock />
             </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { anfragen, aktiveAnfrage } from "@/data/anfragen";
+import { ausgewaehlteMonteure } from "@/data/monteure";
 import {
   ArrowRight,
   AlertCircle,
@@ -10,10 +11,11 @@ import {
   Users,
   Package,
   Hotel,
-  Truck,
   Sparkles,
   Wrench,
   ChevronDown,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -39,16 +41,17 @@ export function InboxView({ onStart }: { onStart: () => void }) {
   const [adresse, setAdresse] = useState(aktiveAnfrage.baustelleAdresse);
   const [von, setVon] = useState("2026-04-13");
   const [bis, setBis] = useState("2026-04-17");
-  const [teamGroesse, setTeamGroesse] = useState(aktiveAnfrage.teamGroesse);
+  const [team, setTeam] = useState(
+    ausgewaehlteMonteure.map((m) => ({
+      name: m.name,
+      adresse: `${m.heimatort}`,
+    }))
+  );
+  const [zimmerAnzahl, setZimmerAnzahl] = useState(3);
+  const [bettenProZimmer, setBettenProZimmer] = useState<1 | 2>(1);
+  const [fruehstueck, setFruehstueck] = useState(true);
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>(
     aktiveAnfrage.equipment
-  );
-  const [budget, setBudget] = useState(120);
-  const [maxDistanz, setMaxDistanz] = useState(15);
-  const [sammelzimmer, setSammelzimmer] = useState(false);
-  const [fruehstueck, setFruehstueck] = useState(true);
-  const [anfahrt, setAnfahrt] = useState<"transporter" | "ice" | "gemischt">(
-    "transporter"
   );
   const [selectedQualifikationen, setSelectedQualifikationen] = useState<string[]>([
     "Kran-Schein",
@@ -56,6 +59,7 @@ export function InboxView({ onStart }: { onStart: () => void }) {
     "Schweißer-Zert",
   ]);
   const [showFuture, setShowFuture] = useState(false);
+  const teamGroesse = team.length;
 
   const transportBedarf = selectedEquipment.some((e) =>
     /2t|Kran/i.test(e)
@@ -127,7 +131,7 @@ export function InboxView({ onStart }: { onStart: () => void }) {
                 Einsatz-Briefing · {aktiveAnfrage.projekt}
               </h1>
               <p className="mt-1 text-[13px] text-[var(--muted-foreground)]">
-                MVP-Felder für den Pilot. Ausbau-Felder darunter als Zukunftsmusik.
+                Nur was der Agent braucht — Richtlinien-Defaults (Budget, Distanz, Fahrzeug-Wahl) optimiert er selbst.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -147,13 +151,13 @@ export function InboxView({ onStart }: { onStart: () => void }) {
             Kern · MVP-Pilot
           </div>
           <div className="space-y-6">
-            {/* Gruppe 1: Projekt-Stamm */}
+            {/* Gruppe 01: Baustelle & Zeitraum */}
             <FormGroup
               icon={MapPin}
               nummer="01"
               totalCount="03"
-              titel="Projekt-Stamm"
-              sub="Baustelle, Zeitraum, Team"
+              titel="Baustelle & Zeitraum"
+              sub="Wohin und wann"
             >
               <Field label="Baustellen-Adresse">
                 <input
@@ -163,7 +167,7 @@ export function InboxView({ onStart }: { onStart: () => void }) {
                   className="w-full h-10 px-3 border border-[var(--border-strong)] bg-white text-[13px] focus:border-[var(--scholpp-red)] outline-none"
                 />
               </Field>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <Field label="Anreise" icon={Calendar}>
                   <input
                     type="date"
@@ -180,80 +184,131 @@ export function InboxView({ onStart }: { onStart: () => void }) {
                     className="w-full h-10 px-3 border border-[var(--border-strong)] bg-white text-[13px] focus:border-[var(--scholpp-red)] outline-none"
                   />
                 </Field>
-                <Field label="Team-Größe" icon={Users}>
+              </div>
+            </FormGroup>
+
+            {/* Gruppe 02: Team (Adressen) */}
+            <FormGroup
+              icon={Users}
+              nummer="02"
+              totalCount="03"
+              titel="Team"
+              sub="Monteure + Heimat-Adressen — Grundlage für Route & Pooling"
+            >
+              <div className="space-y-2">
+                {team.map((m, i) => (
+                  <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2">
+                    <input
+                      type="text"
+                      value={m.name}
+                      placeholder="Name"
+                      onChange={(e) =>
+                        setTeam((t) =>
+                          t.map((row, idx) => (idx === i ? { ...row, name: e.target.value } : row))
+                        )
+                      }
+                      className="h-10 px-3 border border-[var(--border-strong)] bg-white text-[13px] focus:border-[var(--scholpp-red)] outline-none"
+                    />
+                    <input
+                      type="text"
+                      value={m.adresse}
+                      placeholder="Heimat-Adresse"
+                      onChange={(e) =>
+                        setTeam((t) =>
+                          t.map((row, idx) => (idx === i ? { ...row, adresse: e.target.value } : row))
+                        )
+                      }
+                      className="h-10 px-3 border border-[var(--border-strong)] bg-white text-[13px] focus:border-[var(--scholpp-red)] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTeam((t) => t.filter((_, idx) => idx !== i))}
+                      className="w-10 h-10 flex items-center justify-center border border-[var(--border-strong)] bg-white text-[var(--muted-foreground)] hover:text-[var(--scholpp-red)] hover:border-[var(--scholpp-red)]"
+                      aria-label="Entfernen"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setTeam((t) => [...t, { name: "", adresse: "" }])}
+                className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--scholpp-red)] hover:underline"
+              >
+                <Plus size={13} />
+                Monteur hinzufügen
+              </button>
+            </FormGroup>
+
+            {/* Gruppe 03: Hotel */}
+            <FormGroup
+              icon={Hotel}
+              nummer="03"
+              totalCount="03"
+              titel="Hotel"
+              sub="Zimmer-Konfiguration — Preis & Distanz macht der Agent nach Richtlinie"
+            >
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Zimmer-Anzahl">
                   <input
                     type="number"
                     min={1}
                     max={20}
-                    value={teamGroesse}
-                    onChange={(e) => setTeamGroesse(Number(e.target.value))}
+                    value={zimmerAnzahl}
+                    onChange={(e) => setZimmerAnzahl(Number(e.target.value))}
                     className="w-full h-10 px-3 border border-[var(--border-strong)] bg-white text-[13px] focus:border-[var(--scholpp-red)] outline-none"
                   />
                 </Field>
+                <Field label="Betten pro Zimmer">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {([1, 2] as const).map((n) => {
+                      const active = bettenProZimmer === n;
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setBettenProZimmer(n)}
+                          className={`h-10 text-[13px] font-medium border transition-colors ${
+                            active
+                              ? "bg-[var(--scholpp-red)] border-[var(--scholpp-red)] text-white"
+                              : "bg-white border-[var(--border-strong)] hover:border-[var(--scholpp-red)]"
+                          }`}
+                        >
+                          {n === 1 ? "Einzel" : "Doppel"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+                <Field label="Frühstück">
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {([
+                      { v: true, label: "Ja" },
+                      { v: false, label: "Nein" },
+                    ] as const).map((opt) => {
+                      const active = fruehstueck === opt.v;
+                      return (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          onClick={() => setFruehstueck(opt.v)}
+                          className={`h-10 text-[13px] font-medium border transition-colors ${
+                            active
+                              ? "bg-[var(--scholpp-red)] border-[var(--scholpp-red)] text-white"
+                              : "bg-white border-[var(--border-strong)] hover:border-[var(--scholpp-red)]"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
               </div>
-            </FormGroup>
-
-            {/* Gruppe 4: Hotel-Präferenzen (MVP 02) */}
-            <FormGroup
-              icon={Hotel}
-              nummer="02"
-              totalCount="03"
-              titel="Hotel-Präferenzen"
-              sub="Default = Betriebsordnung (120 €, 15 km). Überschreibbar pro Fall."
-            >
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
-                    <span>Budget-Override</span>
-                    <span className="font-mono text-[var(--scholpp-red)]">{budget} €</span>
-                  </div>
-                  <input type="range" min={60} max={180} step={5} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-[var(--scholpp-red)]" />
-                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
-                    <span>60 €</span><span>Richtlinie 120 €</span><span>180 €</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
-                    <span>Max. Distanz zur Baustelle</span>
-                    <span className="font-mono text-[var(--scholpp-red)]">{maxDistanz} km</span>
-                  </div>
-                  <input type="range" min={5} max={30} step={1} value={maxDistanz} onChange={(e) => setMaxDistanz(Number(e.target.value))} className="w-full accent-[var(--scholpp-red)]" />
-                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
-                    <span>5 km</span><span>Richtlinie 15 km</span><span>30 km</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-6 mt-5">
-                <Toggle value={sammelzimmer} onChange={setSammelzimmer} label="Monteure gemeinsame Unterkunft" />
-                <Toggle value={fruehstueck} onChange={setFruehstueck} label="Frühstück inkludiert" />
-              </div>
-            </FormGroup>
-
-            {/* Gruppe 5: Anfahrt-Strategie (MVP 03) */}
-            <FormGroup
-              icon={Truck}
-              nummer="03"
-              totalCount="03"
-              titel="Anfahrt-Strategie"
-              sub="Agent vergleicht trotzdem alle drei — Präferenz wird gewichtet"
-            >
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { id: "transporter", label: "Transporter-Pool", sub: "Werkzeug + Team in einem Fahrzeug" },
-                  { id: "ice", label: "ICE-Alternative", sub: "Team per Zug + separater Transporter" },
-                  { id: "gemischt", label: "Gemischt", sub: "Agent entscheidet pro Einsatz" },
-                ] as const).map((opt) => {
-                  const active = anfahrt === opt.id;
-                  return (
-                    <button key={opt.id} type="button" onClick={() => setAnfahrt(opt.id)} className={`text-left px-4 py-3 border transition-colors ${active ? "bg-[var(--scholpp-red)]/[0.05] border-[var(--scholpp-red)]" : "bg-white border-[var(--border-strong)] hover:border-[var(--scholpp-red)]"}`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className={`w-3 h-3 rounded-full border-2 ${active ? "border-[var(--scholpp-red)] bg-[var(--scholpp-red)]" : "border-[var(--border-strong)]"}`} />
-                        <span className="text-[13px] font-semibold">{opt.label}</span>
-                      </div>
-                      <div className="text-[11px] text-[var(--muted-foreground)] leading-snug pl-5">{opt.sub}</div>
-                    </button>
-                  );
-                })}
+              <div className="inline-flex items-center gap-2 mt-4 text-[12px] text-[var(--muted-foreground)] bg-[var(--muted)]/50 px-3 py-1.5 border border-[var(--border)]">
+                <Sparkles size={12} className="text-[var(--scholpp-red)]" />
+                Bedarf: <span className="font-semibold text-[var(--foreground)]">{zimmerAnzahl} Zimmer · {bettenProZimmer === 1 ? "Einzel" : "Doppel"} · Frühstück {fruehstueck ? "ja" : "nein"}</span>
               </div>
             </FormGroup>
 

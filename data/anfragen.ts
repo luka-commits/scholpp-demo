@@ -13,6 +13,7 @@ export type Anfrage = {
   eingegangenAm: string;
   status: "neu" | "in-bearbeitung" | "abgeschlossen";
   prioritaet: "hoch" | "normal";
+  werkzeugAnforderung: "standard" | "schwerlast";
 };
 
 export const anfragen: Anfrage[] = [
@@ -31,6 +32,7 @@ export const anfragen: Anfrage[] = [
     eingegangenAm: "Heute, 08:42",
     status: "neu",
     prioritaet: "hoch",
+    werkzeugAnforderung: "schwerlast",
   },
   {
     id: "REQ-2026-0411",
@@ -46,6 +48,7 @@ export const anfragen: Anfrage[] = [
     eingegangenAm: "Gestern, 16:21",
     status: "neu",
     prioritaet: "normal",
+    werkzeugAnforderung: "standard",
   },
   {
     id: "REQ-2026-0410",
@@ -61,6 +64,7 @@ export const anfragen: Anfrage[] = [
     eingegangenAm: "Gestern, 11:03",
     status: "neu",
     prioritaet: "normal",
+    werkzeugAnforderung: "schwerlast",
   },
 ];
 
