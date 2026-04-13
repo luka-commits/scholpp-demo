@@ -11,6 +11,10 @@ export type AnreiseStrategie =
 
 export type FahrzeitMin = number;
 
+const DIREKT_GRENZE_MIN = 90;
+const KORRIDOR_GRENZE_MIN = 30;
+const HUB_GRENZE_MIN = 60;
+
 export type SprinterDispatchInput = {
   anfrage: Anfrage;
   niederlassungen: Niederlassung[];
@@ -81,8 +85,12 @@ export function selectSprinterStartNl(
       fahrzeitNlZurBaustelleMin[nl.id] ?? Number.POSITIVE_INFINITY;
 
     const breakdown: MonteurZugangBreakdown[] = monteure.map((m) => {
-      const direkt =
+      const direktRaw =
         fahrzeitMonteurZurBaustelleMin[m.id] ?? Number.POSITIVE_INFINITY;
+      // "direkt" nur als Option wenn ≤ 90 min (Arbeitszeit-Cap, Anreise-Regel).
+      // Darüber muss Monteur via Hub/Sprinter/Bahn → sonst konkurriert direkt
+      // illusorisch an jeder NL und macht tSprinter-Vergleich toothless.
+      const direkt = direktRaw <= DIREKT_GRENZE_MIN ? direktRaw : Number.POSITIVE_INFINITY;
       const zumHub =
         (fahrzeitMonteurZurNlMin[m.id]?.[nl.id] ?? Number.POSITIVE_INFINITY) +
         tSprinterMin;
@@ -98,7 +106,9 @@ export function selectSprinterStartNl(
       ];
       options.sort((a, b) => a[0] - b[0]);
       const [kostenMin, pfad] = options[0];
-      return { monteurId: m.id, kostenMin, pfad };
+      // Fallback wenn alle Optionen INF (kein realistischer Zugang): raw-direkt als Bahn-Proxy
+      const finalKosten = isFinite(kostenMin) ? kostenMin : direktRaw;
+      return { monteurId: m.id, kostenMin: finalKosten, pfad };
     });
 
     const summeMonteurZugangMin = breakdown.reduce(
@@ -163,10 +173,6 @@ export type AnreiseEntscheidung = {
     korridorUmwegMin: FahrzeitMin;
   };
 };
-
-const DIREKT_GRENZE_MIN = 90;
-const KORRIDOR_GRENZE_MIN = 30;
-const HUB_GRENZE_MIN = 60;
 
 export function decideAnreise(input: AnreiseInput): AnreiseEntscheidung {
   const {
