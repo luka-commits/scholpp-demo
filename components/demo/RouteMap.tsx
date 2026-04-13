@@ -2,20 +2,12 @@
 
 import { GoogleMap, Marker, Polyline, useJsApiLoader } from "@react-google-maps/api";
 import { useMemo } from "react";
-import { rankedHotels } from "@/data/scoring";
 import { aktiveAnfrage } from "@/data/anfragen";
+import { ausgewaehlteMonteure } from "@/data/monteure";
 
-// Approximated hotel coordinates (Hannover / Langenhagen) — good enough for demo
-const hotelCoords: Record<string, { lat: number; lng: number }> = {
-  h1: { lat: 52.4514, lng: 9.7361 }, // IntercityHotel Langenhagen
-  h2: { lat: 52.3744, lng: 9.7386 }, // NH Hannover (Andreaestr)
-  h3: { lat: 52.3208, lng: 9.8022 }, // Best Western Kronsberg
-  h4: { lat: 52.3606, lng: 9.7422 }, // Courtyard Maschsee
-  h5: { lat: 52.4011, lng: 9.6892 }, // B&B Hannover-Nord
-  h9: { lat: 52.377, lng: 9.726 }, // H+ Osterstr
-  h12: { lat: 52.3893, lng: 9.802 }, // Wyndham Atrium
-  h13: { lat: 52.3788, lng: 9.7355 }, // Motel One
-};
+// Treffpunkt für Pooling — Frankfurt Hbf (zentral, an A5/A7)
+const meetPoint = { lat: 50.107, lng: 8.663 };
+const meetPointLabel = "Frankfurt Hbf · Treffpunkt";
 
 const mapStyles: google.maps.MapTypeStyle[] = [
   { featureType: "poi", stylers: [{ visibility: "off" }] },
@@ -25,10 +17,7 @@ const mapStyles: google.maps.MapTypeStyle[] = [
     elementType: "geometry",
     stylers: [{ color: "#f5c242" }],
   },
-  {
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#5a5a5a" }],
-  },
+  { elementType: "labels.text.fill", stylers: [{ color: "#5a5a5a" }] },
 ];
 
 export function RouteMap() {
@@ -38,41 +27,45 @@ export function RouteMap() {
   });
 
   const baustelle = aktiveAnfrage.baustelleKoordinaten;
-  const topThree = useMemo(
-    () =>
-      rankedHotels.slice(0, 3).map((r, i) => ({
-        id: r.hotel.id,
-        name: r.hotel.name,
-        km: r.hotel.entfernungKm,
-        rank: i + 1,
-        position: hotelCoords[r.hotel.id] || { lat: 52.4, lng: 9.73 },
-      })),
-    []
-  );
 
   const center = useMemo(() => {
-    const all = [baustelle, ...topThree.map((h) => h.position)];
+    const all = [
+      baustelle,
+      meetPoint,
+      ...ausgewaehlteMonteure.map((m) => m.heimatKoordinaten),
+    ];
     const lat = all.reduce((s, p) => s + p.lat, 0) / all.length;
     const lng = all.reduce((s, p) => s + p.lng, 0) / all.length;
     return { lat, lng };
-  }, [baustelle, topThree]);
+  }, [baustelle]);
 
   return (
     <div className="hairline border bg-white">
       <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
-          Routen-Übersicht · Hannover/Langenhagen
+          Anreise-Pooling · 3 Heimatorte → 1 Baustelle
         </div>
         <div className="text-[11px] text-[var(--muted-foreground)] font-mono">
-          Quelle: Google Maps
+          Heimat-Adressen aus Personal-DB
         </div>
       </div>
-      <div className="relative h-[340px] bg-[#e9ecef]">
+      <div className="px-5 py-3 bg-[var(--scholpp-red)]/[0.04] border-b border-[var(--border)] flex items-baseline gap-4 flex-wrap text-[12px]">
+        <span>
+          <span className="font-semibold">Status Quo:</span> jeder fährt allein von
+          zu Hause — 3× Privat-PKW nach Hannover
+        </span>
+        <span className="text-[var(--scholpp-red)]">→</span>
+        <span>
+          <span className="font-semibold">Vorschlag:</span> Treffpunkt Frankfurt
+          Hbf · 1× Sprinter gemeinsam weiter
+        </span>
+      </div>
+      <div className="relative h-[380px] bg-[#e9ecef]">
         {isLoaded ? (
           <GoogleMap
             mapContainerStyle={{ width: "100%", height: "100%" }}
             center={center}
-            zoom={11}
+            zoom={6}
             options={{
               disableDefaultUI: true,
               zoomControl: true,
@@ -81,6 +74,49 @@ export function RouteMap() {
               backgroundColor: "#e9ecef",
             }}
           >
+            {/* Heimatorte */}
+            {ausgewaehlteMonteure.map((m) => (
+              <Marker
+                key={m.id}
+                position={m.heimatKoordinaten}
+                label={{
+                  text: m.kuerzel,
+                  color: "white",
+                  fontWeight: "700",
+                  fontSize: "11px",
+                }}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 12,
+                  fillColor: "#e00028",
+                  fillOpacity: 1,
+                  strokeColor: "white",
+                  strokeWeight: 2,
+                }}
+                title={`${m.name} — ${m.heimatort}`}
+              />
+            ))}
+
+            {/* Treffpunkt */}
+            <Marker
+              position={meetPoint}
+              label={{
+                text: "T",
+                color: "white",
+                fontWeight: "700",
+                fontSize: "12px",
+              }}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 13,
+                fillColor: "#f5c242",
+                fillOpacity: 1,
+                strokeColor: "#8a5a00",
+                strokeWeight: 2,
+              }}
+              title={meetPointLabel}
+            />
+
             {/* Baustelle */}
             <Marker
               position={baustelle}
@@ -100,45 +136,15 @@ export function RouteMap() {
               }}
               title={`Baustelle — ${aktiveAnfrage.baustelleAdresse}`}
             />
-            {/* Hotels */}
-            {topThree.map((h) => (
-              <Marker
-                key={h.id}
-                position={h.position}
-                label={{
-                  text: String(h.rank),
-                  color: h.rank === 1 ? "white" : "#111111",
-                  fontWeight: "700",
-                  fontSize: "12px",
-                }}
-                icon={{
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: h.rank === 1 ? 13 : 11,
-                  fillColor: h.rank === 1 ? "#e00028" : "#ffffff",
-                  fillOpacity: 1,
-                  strokeColor: h.rank === 1 ? "white" : "#646464",
-                  strokeWeight: h.rank === 1 ? 3 : 2,
-                }}
-                title={`#${h.rank} ${h.name} — ${h.km} km`}
-              />
-            ))}
-            {/* Connection from Top-1 hotel to baustelle */}
-            <Polyline
-              path={[topThree[0].position, baustelle]}
-              options={{
-                strokeColor: "#e00028",
-                strokeOpacity: 0.9,
-                strokeWeight: 3,
-                geodesic: true,
-              }}
-            />
-            {topThree.slice(1).map((h) => (
+
+            {/* Heimat → Treffpunkt (Einzelfahrten, gestrichelt) */}
+            {ausgewaehlteMonteure.map((m) => (
               <Polyline
-                key={h.id}
-                path={[h.position, baustelle]}
+                key={m.id + "-meet"}
+                path={[m.heimatKoordinaten, meetPoint]}
                 options={{
                   strokeColor: "#a0a0a0",
-                  strokeOpacity: 0.7,
+                  strokeOpacity: 0,
                   strokeWeight: 1.5,
                   geodesic: true,
                   icons: [
@@ -151,6 +157,17 @@ export function RouteMap() {
                 }}
               />
             ))}
+
+            {/* Treffpunkt → Baustelle (Sprinter, rot durchgezogen) */}
+            <Polyline
+              path={[meetPoint, baustelle]}
+              options={{
+                strokeColor: "#e00028",
+                strokeOpacity: 0.9,
+                strokeWeight: 4,
+                geodesic: true,
+              }}
+            />
           </GoogleMap>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-[12px] text-[var(--muted-foreground)]">
@@ -158,18 +175,37 @@ export function RouteMap() {
           </div>
         )}
       </div>
-      <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-5 text-[11px] text-[var(--muted-foreground)]">
+      <div className="px-5 py-3 border-t border-[var(--border)] grid grid-cols-3 gap-3 text-[11px]">
+        {ausgewaehlteMonteure.map((m) => (
+          <div key={m.id} className="flex items-start gap-2">
+            <span className="w-5 h-5 rounded-full bg-[var(--scholpp-red)] text-white font-semibold text-[10px] flex items-center justify-center shrink-0">
+              {m.kuerzel}
+            </span>
+            <div>
+              <div className="font-medium">{m.heimatort}</div>
+              <div className="text-[var(--muted-foreground)] text-[10px]">
+                {m.name.split(" ")[0]} {m.name.split(" ").slice(-1)[0]}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-5 text-[11px] text-[var(--muted-foreground)] flex-wrap">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-[var(--scholpp-red)]" />
-          Empfehlung #1 · {topThree[0].km} km
+          Heimatort (Monteur)
         </div>
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-white border border-[var(--border-strong)]" />
-          Alternativen
+          <span className="w-3 h-3 rounded-full bg-[#f5c242] border border-[#8a5a00]" />
+          Treffpunkt Frankfurt Hbf
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-black" />
-          Baustelle
+          Baustelle Hannover
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-4 h-[2px] bg-[var(--scholpp-red)]" />
+          Sprinter-Pooling
         </div>
       </div>
     </div>

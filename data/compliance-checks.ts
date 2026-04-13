@@ -33,14 +33,14 @@ export const complianceChecks: ComplianceCheck[] = [
     label: "Arbeitszeitgesetz (Fahrt + Arbeitszeit)",
     detail: "Anreise mit Sprinter + Übernachtung → max. 10 h Fahrt/Tag eingehalten",
     status: "ok",
-    quelle: "Tarifvertrag IG-Metall",
+    quelle: "Tarifvertrag Sächs. Verkehrsgewerbe",
   },
   {
     id: "c5",
     label: "Reisekosten-Pauschale / Auslösen",
     detail: "Tagessatz 28 € · Übernachtungs-Pauschale 20 € — in Kalkulation berücksichtigt",
     status: "ok",
-    quelle: "Tarifvertrag IG-Metall",
+    quelle: "Tarifvertrag Sächs. Verkehrsgewerbe",
   },
   {
     id: "c6",

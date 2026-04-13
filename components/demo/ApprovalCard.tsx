@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ShieldCheck,
   Route,
+  Sparkles,
 } from "lucide-react";
 import { rankedHotels } from "@/data/scoring";
 import { hotels } from "@/data/hotels";
@@ -17,26 +18,20 @@ import { aktiveAnfrage } from "@/data/anfragen";
 import { HotelCard } from "./HotelCard";
 import { RouteMap } from "./RouteMap";
 import { VehicleBlock } from "./VehicleBlock";
-import { KPISidebar } from "./KPISidebar";
 import { TeamBlock } from "./TeamBlock";
 import { EquipmentBlock } from "./EquipmentBlock";
 import { ComplianceBlock } from "./ComplianceBlock";
 import { VorOrtBlock } from "./VorOrtBlock";
-import {
-  empfohleneFahrzeugOption,
-  ersparnisFahrzeug,
-} from "@/data/fahrzeuge";
+import { empfohleneFahrzeugOption } from "@/data/fahrzeuge";
 import { NewRequestToast } from "./NewRequestToast";
 
 export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
   const [showFiltered, setShowFiltered] = useState(false);
+  const [showFuture, setShowFuture] = useState(false);
 
   const top = rankedHotels[0];
   const topCards = rankedHotels.slice(0, 3);
   const gefiltert = hotels.filter((h) => !h.erfuelltRichtlinie);
-  const gesamtErsparnis =
-    ersparnisFahrzeug +
-    Math.max(0, (120 - top.hotel.preisProNacht) * 4 * aktiveAnfrage.teamGroesse);
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[var(--muted)]/30">
@@ -46,49 +41,47 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
         <div className="space-y-5 min-w-0">
           {/* Header */}
           <div className="hairline border bg-white p-6">
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <div className="font-mono text-[11px] text-[var(--muted-foreground)] mb-1">
-                  {aktiveAnfrage.id} · Einsatz-Vorschlag 08:43:12
-                </div>
-                <h1 className="text-[26px] font-semibold tracking-[-0.01em] leading-tight">
-                  Einsatz: Hannover 13.–17.04.
-                </h1>
+            <div className="mb-3">
+              <div className="font-mono text-[11px] text-[var(--muted-foreground)] mb-1">
+                {aktiveAnfrage.id} · Einsatz-Vorschlag 08:43:12
               </div>
-              <div className="text-right">
-                <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-1">
-                  Geschätzte Ersparnis
-                </div>
-                <div className="text-[28px] font-bold tracking-[-0.02em] text-[var(--success)] leading-none">
-                  {formatEur(gesamtErsparnis)}
-                </div>
-                <div className="text-[11px] text-[var(--muted-foreground)] mt-1">
-                  vs. Status-Quo-Buchung
-                </div>
-              </div>
+              <h1 className="text-[26px] font-semibold tracking-[-0.01em] leading-tight">
+                Einsatz: Hannover 13.–17.04.
+              </h1>
             </div>
             <div className="flex flex-wrap items-center gap-5 text-[13px] text-[var(--muted-foreground)]">
               <span className="inline-flex items-center gap-1.5">
                 <ShieldCheck size={14} className="text-[var(--success)]" />
                 100 % richtlinienkonform
               </span>
-              <span>3 Monteure · 4 Equipment · 1 Hotel + Anreise</span>
-              <span>9 Quellen · 11 Checks</span>
+              <span>3 Monteure · 1 Hotel + Anreise</span>
+              <span>11 Quellen · 7 Hotel-Portale</span>
             </div>
           </div>
 
-          {/* 1. Team */}
-          <TeamBlock />
+          {/* MVP-Sektion ============================ */}
+          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold pt-2">
+            Kern · Reise-Koordination
+          </div>
 
-          {/* 2. Equipment */}
-          <EquipmentBlock />
+          {/* 1. Anreise-Pooling (Multi-Origin) */}
+          <div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
+              <Route size={12} />
+              Anreise · Pooling + Fahrzeug-Optimierung
+            </div>
+            <RouteMap />
+            <div className="mt-4">
+              <VehicleBlock />
+            </div>
+          </div>
 
-          {/* 3. Anreise (dominant) */}
+          {/* 2. Hotel-Recherche */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
-                <Route size={12} />
-                Anreise · Hotel + Fahrzeug + Equipment-Transport
+                <Sparkles size={12} />
+                Hotel-Recherche · Preis-Check über 7 Portale
               </div>
               <div className="text-[11px] text-[var(--muted-foreground)]">
                 Sortiert nach Scoring · alle richtlinienkonform
@@ -106,7 +99,6 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
               ))}
             </div>
 
-            {/* Filtered expandable */}
             <div className="hairline border bg-white mt-3">
               <button
                 onClick={() => setShowFiltered((v) => !v)}
@@ -151,20 +143,7 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
                 )}
               </AnimatePresence>
             </div>
-
-            <div className="mt-4">
-              <RouteMap />
-            </div>
-            <div className="mt-4">
-              <VehicleBlock />
-            </div>
           </div>
-
-          {/* 4. Compliance */}
-          <ComplianceBlock />
-
-          {/* 5. Vor-Ort */}
-          <VorOrtBlock />
 
           {/* Actions */}
           <div className="hairline border bg-white sticky bottom-0 p-4 flex items-center justify-between z-20">
@@ -189,11 +168,53 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
               </button>
             </div>
           </div>
+
+          {/* Zukunftsmusik-Sektion ============================ */}
+          <div className="pt-6">
+            <button
+              onClick={() => setShowFuture((v) => !v)}
+              className="w-full hairline border bg-white px-5 py-4 flex items-center justify-between hover:bg-[var(--muted)]/30 text-left"
+            >
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted-foreground)] font-semibold mb-1">
+                  Ausbau-Stufe · Zukunftsmusik
+                </div>
+                <div className="text-[15px] font-semibold tracking-[-0.01em]">
+                  Weitere Facetten des Einsatz-Koordinators
+                </div>
+                <div className="text-[12px] text-[var(--muted-foreground)] mt-1">
+                  Team-Validierung · Equipment-Dispo · Reiseregeln · Vor-Ort-Setup — nach dem MVP-Pilot
+                </div>
+              </div>
+              <ChevronDown
+                size={18}
+                className={`transition-transform text-[var(--muted-foreground)] shrink-0 ml-4 ${
+                  showFuture ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {showFuture && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-5 space-y-5">
+                    <TeamBlock />
+                    <EquipmentBlock />
+                    <ComplianceBlock />
+                    <VorOrtBlock />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Right rail */}
+        {/* Right rail — nur Einsatz-Summary */}
         <div className="hidden md:block space-y-4">
-          <KPISidebar />
           <div className="hairline border bg-white p-4">
             <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
               Einsatz-Summary
@@ -202,14 +223,6 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
               <li className="flex justify-between">
                 <span className="text-[var(--muted-foreground)]">Team</span>
                 <span className="font-medium">3 Monteure</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="text-[var(--muted-foreground)]">Equipment</span>
-                <span className="font-medium">4 Items</span>
-              </li>
-              <li className="flex justify-between">
-                <span className="text-[var(--muted-foreground)]">Compliance</span>
-                <span className="font-medium text-[var(--success)]">100 %</span>
               </li>
               <li className="flex justify-between gap-2 pt-2 mt-1 border-t border-[var(--border)]">
                 <span className="text-[var(--muted-foreground)]">Hotel</span>

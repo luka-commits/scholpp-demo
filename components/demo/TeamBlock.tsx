@@ -16,10 +16,10 @@ export function TeamBlock() {
       <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
           <Users size={12} />
-          Team · 3 Monteure ausgewählt
+          Team-Validierung · 3 Monteure · 4 harte Checks bestanden
         </div>
         <div className="text-[11px] text-[var(--muted-foreground)]">
-          aus 5 verfügbaren · 100 % Quali-Match
+          Verfügbarkeit · G25 · Führerscheine · Arbeitszeit
         </div>
       </div>
       <ul className="divide-y divide-[var(--border)]">
@@ -33,6 +33,11 @@ export function TeamBlock() {
                 <span className="text-[14px] font-semibold tracking-[-0.01em]">
                   {m.name}
                 </span>
+                {m.rolle && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-[var(--scholpp-red)]/10 text-[var(--scholpp-red)] font-semibold uppercase tracking-wide">
+                    {m.rolle}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1 text-[11px] text-[var(--muted-foreground)]">
                   <MapPin size={10} />
                   {m.heimatort}
@@ -65,7 +70,7 @@ export function TeamBlock() {
         onClick={() => setExpanded((v) => !v)}
         className="w-full px-5 py-2.5 flex items-center justify-between text-[11px] text-[var(--muted-foreground)] hover:bg-[var(--muted)]/40 border-t border-[var(--border)] text-left"
       >
-        <span>Warum diese Auswahl?</span>
+        <span>Was der Agent geprüft hat</span>
         <ChevronDown
           size={13}
           className={`transition-transform ${expanded ? "rotate-180" : ""}`}
@@ -81,7 +86,7 @@ export function TeamBlock() {
           >
             <div className="px-5 py-3">
               <div className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)] font-semibold mb-2">
-                Auswahl-Begründung
+                Validierungs-Ergebnisse
               </div>
               <ul className="space-y-1.5 text-[12px]">
                 {monteurAuswahlBegruendung.map((b, i) => (
@@ -94,7 +99,7 @@ export function TeamBlock() {
               {monteurAlternativenGefiltert.length > 0 && (
                 <>
                   <div className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)] font-semibold mt-3 mb-2">
-                    Nicht berücksichtigt
+                    Vom PL erwogen, Agent hat geflaggt
                   </div>
                   <ul className="space-y-1 text-[11px] text-[var(--muted-foreground)]">
                     {monteurAlternativenGefiltert.map((a, i) => (

@@ -13,7 +13,9 @@ import {
   Truck,
   Sparkles,
   Wrench,
+  ChevronDown,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
 const equipmentOptionen = [
   "Schwerlastgeschirr 2t",
@@ -53,6 +55,7 @@ export function InboxView({ onStart }: { onStart: () => void }) {
     "Hydraulik",
     "Schweißer-Zert",
   ]);
+  const [showFuture, setShowFuture] = useState(false);
 
   const transportBedarf = selectedEquipment.some((e) =>
     /2t|Kran/i.test(e)
@@ -124,7 +127,7 @@ export function InboxView({ onStart }: { onStart: () => void }) {
                 Einsatz-Briefing · {aktiveAnfrage.projekt}
               </h1>
               <p className="mt-1 text-[13px] text-[var(--muted-foreground)]">
-                Projektleiter-Formular wie im Roomix-Portal. Alle Felder editierbar.
+                MVP-Felder für den Pilot. Ausbau-Felder darunter als Zukunftsmusik.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -140,11 +143,15 @@ export function InboxView({ onStart }: { onStart: () => void }) {
             </div>
           </div>
 
+          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
+            Kern · MVP-Pilot
+          </div>
           <div className="space-y-6">
             {/* Gruppe 1: Projekt-Stamm */}
             <FormGroup
               icon={MapPin}
               nummer="01"
+              totalCount="03"
               titel="Projekt-Stamm"
               sub="Baustelle, Zeitraum, Team"
             >
@@ -186,13 +193,83 @@ export function InboxView({ onStart }: { onStart: () => void }) {
               </div>
             </FormGroup>
 
-            {/* Gruppe 2: Einsatz-Anforderung (Qualifikationen) */}
+            {/* Gruppe 4: Hotel-Präferenzen (MVP 02) */}
             <FormGroup
-              icon={Wrench}
+              icon={Hotel}
               nummer="02"
-              titel="Einsatz-Anforderung"
-              sub="Agent wählt passende Monteure aus dem Pool"
+              totalCount="03"
+              titel="Hotel-Präferenzen"
+              sub="Default = Betriebsordnung (120 €, 15 km). Überschreibbar pro Fall."
+            ><HotelPrefsBody
+              budget={budget}
+              setBudget={setBudget}
+              maxDistanz={maxDistanz}
+              setMaxDistanz={setMaxDistanz}
+              sammelzimmer={sammelzimmer}
+              setSammelzimmer={setSammelzimmer}
+              fruehstueck={fruehstueck}
+              setFruehstueck={setFruehstueck}
+            /></FormGroup>
+
+            {/* Gruppe 5: Anfahrt-Strategie (MVP 03) */}
+            <FormGroup
+              icon={Truck}
+              nummer="03"
+              totalCount="03"
+              titel="Anfahrt-Strategie"
+              sub="Agent vergleicht trotzdem alle drei — Präferenz wird gewichtet"
+            ><AnfahrtBody anfahrt={anfahrt} setAnfahrt={setAnfahrt} /></FormGroup>
+
+            {aktiveAnfrage.sonderwuensche && (
+              <div className="hairline border bg-[var(--muted)]/40 p-4">
+                <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-1">
+                  Sonderwünsche (Freitext)
+                </div>
+                <div className="text-[13px] leading-relaxed">
+                  {aktiveAnfrage.sonderwuensche}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Zukunftsmusik-Sektion */}
+          <div className="mt-8">
+            <button
+              onClick={() => setShowFuture((v) => !v)}
+              className="w-full hairline border bg-white px-5 py-4 flex items-center justify-between hover:bg-[var(--muted)]/30 text-left"
             >
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--muted-foreground)] font-semibold mb-1">
+                  Ausbau-Stufe · Zukunftsmusik
+                </div>
+                <div className="text-[15px] font-semibold tracking-[-0.01em]">
+                  Weitere Felder nach MVP-Pilot
+                </div>
+                <div className="text-[12px] text-[var(--muted-foreground)] mt-1">
+                  Qualifikations-Matching · Equipment-Dispo — für den Ausbau, nicht für Pilot-Start
+                </div>
+              </div>
+              <ChevronDown
+                size={18}
+                className={`transition-transform text-[var(--muted-foreground)] shrink-0 ml-4 ${showFuture ? "rotate-180" : ""}`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {showFuture && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-5 space-y-6">
+                    <FormGroup
+                      icon={Wrench}
+                      nummer="A"
+                      totalCount="—"
+                      titel="Einsatz-Anforderung · Qualifikationen"
+                      sub="Ausbau: Agent validiert Monteur-Zertifikate gegen Anforderung"
+                    >
               <div className="flex flex-wrap gap-2">
                 {qualifikationOptionen.map((q) => {
                   const active = selectedQualifikationen.includes(q);

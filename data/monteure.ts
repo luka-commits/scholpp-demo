@@ -13,6 +13,7 @@ export type Monteur = {
   heimatort: string;
   heimatKoordinaten: { lat: number; lng: number };
   qualifikationen: Qualifikation[];
+  rolle?: string;
   verfuegbarAb: string;
   g25Gueltig: string;
   g41Gueltig?: string;
@@ -26,6 +27,7 @@ export const monteure: Monteur[] = [
     name: "Michael Brandt",
     kuerzel: "MB",
     heimatort: "Stuttgart",
+    rolle: "Richtmeister",
     heimatKoordinaten: { lat: 48.775, lng: 9.182 },
     qualifikationen: ["Kran-Schein", "Hydraulik", "Stapler"],
     verfuegbarAb: "13.04.2026",
@@ -86,10 +88,11 @@ export const monteure: Monteur[] = [
 export const ausgewaehlteMonteure = [monteure[0], monteure[1], monteure[2]];
 
 export const monteurAuswahlBegruendung = [
-  "Qualifikations-Abdeckung: 2× Kran-Schein, 2× Hydraulik, 1× Schweißer",
-  "Alle drei verfügbar 13.–17.04.2026",
-  "Alle G25-Untersuchungen aktuell gültig",
-  "Michael Brandt hat 3 frühere KUKA-Einsätze — Kunden-Kontext vorhanden",
+  "Vom PL zusammengestellt (Richtmeister Brandt + 2 Monteure) — Agent validiert 4 harte Checks",
+  "Verfügbarkeit 13.–17.04.2026 gegen Disposition abgeglichen — alle frei",
+  "G25-Untersuchung (Fahrtätigkeit) aktuell gültig — nächste Frist 08/2026",
+  "Führerschein C1E bei Brandt/Petersen gültig — Sprinter mit 2t Geschirr fahrbar",
+  "Arbeitszeit-Check (Betriebsordnung §7.1): Anreise + Arbeit unter 10 h/Tag",
 ];
 
 export const monteurAlternativenGefiltert = [

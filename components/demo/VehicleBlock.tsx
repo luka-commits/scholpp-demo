@@ -14,6 +14,17 @@ export function VehicleBlock() {
           Quellen: SCHOLPP Fleet · ADAC
         </div>
       </div>
+      <div className="px-5 py-4 bg-[var(--scholpp-red)]/[0.04] border-b border-[var(--border)] flex items-baseline gap-3 flex-wrap">
+        <span className="text-[20px] font-bold tracking-[-0.01em]">
+          4× Privat-PKW → 1× Sprinter + 1× Caddy
+        </span>
+        <span className="text-[13px] text-[var(--muted-foreground)]">
+          Status Quo: jeder Monteur fährt allein. Agent poolt Fleet-Fahrzeuge + nimmt 2t Werkzeug mit.
+        </span>
+        <span className="ml-auto text-[13px] font-semibold text-[var(--success)]">
+          −680 € pro Einsatz
+        </span>
+      </div>
       <div className="grid md:grid-cols-3 divide-x divide-[var(--border)]">
         {fahrzeugOptionen.map((f) => (
           <div

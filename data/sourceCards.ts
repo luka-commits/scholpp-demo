@@ -112,6 +112,34 @@ export const sourceCards: SourceCardDef[] = [
     dauer: 2600,
   },
   {
+    id: "trivago",
+    name: "trivago",
+    domain: "trivago.de/hannover",
+    typ: "extern",
+    snippets: [
+      "IntercityHotel — 113 € (Meta-Vergleich 14 Portale)",
+      "Courtyard Maschsee — 132 €",
+      "H4 Hannover Messe — 108 €",
+    ],
+    ergebnis: "Meta-Preisvergleich: 3 Matches",
+    delay: 2800,
+    dauer: 2400,
+  },
+  {
+    id: "hrs-corp",
+    name: "HRS Corporate",
+    domain: "hrs.de/corporate/scholpp",
+    typ: "extern",
+    snippets: [
+      "Firmenraten-Zugriff: aktiv",
+      "IntercityHotel — 108 € (Corporate)",
+      "Sammelrechnung: ja",
+    ],
+    ergebnis: "2 Corporate-Raten unter Portal-Preis",
+    delay: 3000,
+    dauer: 2200,
+  },
+  {
     id: "adac",
     name: "ADAC Kostenrechner",
     domain: "adac.de/autokosten",
@@ -127,8 +155,8 @@ export const sourceCards: SourceCardDef[] = [
   },
   {
     id: "tarif",
-    name: "IG-Metall Tarifvertrag",
-    domain: "igmetall.de/tarifvertraege",
+    name: "Tarifvertrag Sächs. Verkehrsgewerbe",
+    domain: "bgl-ev.de/tarife/sachsen",
     typ: "extern",
     snippets: [
       "Auslösen 28 €/Tag · Übernachtung 20 €/Nacht",

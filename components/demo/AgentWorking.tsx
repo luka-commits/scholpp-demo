@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, ShieldCheck } from "lucide-react";
+import { Check, Loader2, ShieldCheck, Search, Scale, FileCheck2, ArrowRight } from "lucide-react";
 import { reasoningSteps, quellenMeta } from "@/data/reasoning-steps";
 import { sourceCards } from "@/data/sourceCards";
 import { SourceCard, type SourceStatus } from "./SourceCard";
@@ -13,6 +13,7 @@ export function AgentWorking({ onDone }: { onDone: () => void }) {
   const [visibleIdx, setVisibleIdx] = useState(0);
   const [completedIdx, setCompletedIdx] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   // Reasoning log
   useEffect(() => {
@@ -32,7 +33,7 @@ export function AgentWorking({ onDone }: { onDone: () => void }) {
     });
 
     setTimeout(() => {
-      if (!canceled) onDone();
+      if (!canceled) setShowOverlay(true);
     }, TOTAL_DURATION + 900);
 
     return () => {
@@ -186,7 +187,7 @@ export function AgentWorking({ onDone }: { onDone: () => void }) {
                 )}
               </div>
               <div className="font-mono text-[var(--muted-foreground)]">
-                5 Monteure · 14 Hotels · 6 Zertifikate · 11 Richtlinien
+                5 Monteure · 7 Hotel-Portale · 6 Zertifikate · 11 Richtlinien
               </div>
             </div>
           </div>
@@ -196,6 +197,91 @@ export function AgentWorking({ onDone }: { onDone: () => void }) {
           Jeder Schritt inkl. Quelle ist im Audit-Log gespeichert.
         </div>
       </div>
+
+      <AnimatePresence>
+        {showOverlay && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="hairline border bg-white max-w-2xl w-full p-8 md:p-10"
+            >
+              <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-4">
+                Ablauf · so arbeitet der Agent
+              </div>
+              <h3 className="text-[26px] leading-[1.15] tracking-[-0.01em] font-semibold text-[var(--foreground)]">
+                Recherche, Vergleich, Freigabe — mit vollem Audit-Log.
+              </h3>
+              <p className="mt-3 text-[14px] text-[var(--muted-foreground)] leading-[1.6]">
+                Der Projektleiter bleibt Entscheider. Der Agent übernimmt die
+                Recherche und bereitet eine nachvollziehbare Empfehlung vor.
+              </p>
+
+              <ul className="mt-6 space-y-4">
+                <li className="flex items-start gap-3">
+                  <div className="mt-0.5 w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0">
+                    <Search size={14} className="text-[var(--scholpp-red)]" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold text-[var(--foreground)]">
+                      1 · Recherche parallel
+                    </div>
+                    <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55]">
+                      Hotels, Fahrzeuge, Zertifikate und Betriebsordnung — intern & extern gleichzeitig gescannt.
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="mt-0.5 w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0">
+                    <Scale size={14} className="text-[var(--scholpp-red)]" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold text-[var(--foreground)]">
+                      2 · Vergleich mit Scoring
+                    </div>
+                    <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55]">
+                      Optionen bewertet nach Preis, Distanz, Compliance. Begründung pro Empfehlung.
+                    </div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="mt-0.5 w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0">
+                    <FileCheck2 size={14} className="text-[var(--scholpp-red)]" />
+                  </div>
+                  <div>
+                    <div className="text-[14px] font-semibold text-[var(--foreground)]">
+                      3 · Freigabe-Vorschlag
+                    </div>
+                    <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55]">
+                      Ein-Klick-Freigabe durch den Projektleiter. Jeder Schritt & jede Quelle im Audit-Log.
+                    </div>
+                  </div>
+                </li>
+              </ul>
+
+              <div className="mt-8 flex items-center justify-between gap-4 pt-6 border-t border-[var(--border)]">
+                <div className="inline-flex items-center gap-1.5 text-[12px] text-[var(--muted-foreground)]">
+                  <ShieldCheck size={13} className="text-[var(--scholpp-red)]" />
+                  Mensch im Zentrum · Agent als Vorbereiter
+                </div>
+                <button
+                  onClick={onDone}
+                  className="inline-flex items-center gap-2 bg-[var(--scholpp-red)] hover:bg-[var(--scholpp-red-hover)] text-white px-6 h-12 font-semibold text-[14px] transition-colors"
+                >
+                  Zum Ergebnis
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

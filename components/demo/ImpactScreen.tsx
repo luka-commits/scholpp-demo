@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
-import { impactZahlen } from "@/data/kpis";
-import { formatEur } from "@/lib/utils";
-import { ArrowRight, ChevronDown, RotateCcw, Mail, Calendar } from "lucide-react";
+import { RotateCcw, Mail, Calendar, Search, Scale, FileCheck2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { SavingsAnimation } from "./SavingsAnimation";
 
 export function ImpactScreen({ onReset }: { onReset: () => void }) {
-  const [showCalc, setShowCalc] = useState(false);
-
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[var(--muted)]/30 py-16 px-6">
       <div className="max-w-5xl mx-auto">
@@ -32,117 +26,82 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           />
         </motion.div>
 
-        {/* 45 min → 2 min */}
+        {/* Was der Agent macht */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="text-center mb-12"
+          className="mb-12"
         >
-          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-5">
-            Ergebnis
+          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
+            Was der Agent übernimmt
           </div>
-          <div className="flex items-center justify-center gap-6 flex-wrap">
-            <span className="text-[64px] font-bold tracking-[-0.03em] leading-none text-[var(--muted-foreground)] line-through decoration-2">
-              45 min
-            </span>
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.35, duration: 0.45 }}
-              className="origin-left"
-            >
-              <ArrowRight size={40} className="text-[var(--scholpp-red)]" />
-            </motion.div>
-            <motion.span
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.75 }}
-              className="text-[80px] font-bold tracking-[-0.03em] leading-none text-[var(--foreground)]"
-            >
-              2 min
-            </motion.span>
-          </div>
-          <p className="mt-5 text-[15px] text-[var(--muted-foreground)] max-w-xl mx-auto">
-            Vom 45-Minuten-Prozess zum 2-Minuten-Freigabe-Klick — pro Buchung,
-            pro Projektleiter.
-          </p>
+          <h2 className="text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] font-semibold text-[var(--foreground)] max-w-3xl">
+            Recherche, Vergleich und Compliance-Check — der Projektleiter entscheidet.
+          </h2>
         </motion.div>
 
-        {/* Middle — Hochrechnung + Animation */}
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="hairline border bg-white p-8"
-          >
-            <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
-              Hochrechnung SCHOLPP-weit
-            </div>
-            <div className="text-[56px] font-bold tracking-[-0.03em] leading-none text-[var(--scholpp-red)]">
-              {formatEur(impactZahlen.geldGespartProJahrEur)}
-            </div>
-            <div className="text-[14px] text-[var(--muted-foreground)] mt-2">
-              direkte Ersparnis pro Jahr
-            </div>
-            <button
-              onClick={() => setShowCalc((v) => !v)}
-              className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--foreground)] font-semibold hover:text-[var(--scholpp-red)] transition-colors"
+        <div className="grid md:grid-cols-3 gap-4 mb-12">
+          {[
+            {
+              icon: Search,
+              title: "Recherche parallel",
+              body: "Hotels, Fahrzeuge, Zertifikate und Betriebsordnung werden intern und extern gleichzeitig geprüft.",
+            },
+            {
+              icon: Scale,
+              title: "Vergleich mit Begründung",
+              body: "Optionen nach Preis, Distanz und Compliance bewertet — jede Empfehlung nachvollziehbar.",
+            },
+            {
+              icon: FileCheck2,
+              title: "Freigabe-Vorschlag",
+              body: "Der Projektleiter bestätigt per Klick. Jeder Schritt und jede Quelle im Audit-Log.",
+            },
+          ].map((item, i) => (
+            <motion.div
+              key={item.title}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className="hairline border bg-white p-6"
             >
-              Wie berechnet?
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${showCalc ? "rotate-180" : ""}`}
-              />
-            </button>
-            <AnimatePresence initial={false}>
-              {showCalc && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="mt-4 pt-4 border-t border-[var(--border)] text-[12px] text-[var(--muted-foreground)] space-y-2 font-mono leading-relaxed">
-                    <div className="flex justify-between">
-                      <span>Einsätze/Jahr (Field Service)</span>
-                      <span className="text-[var(--foreground)]">500</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Ø Ersparnis Anreise (Hotel+Fahrzeug)</span>
-                      <span className="text-[var(--foreground)]">170 €</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Ø PL-Zeit gespart (Team+Equipment+Compliance)</span>
-                      <span className="text-[var(--foreground)]">110 €</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Compliance-Gewinn (vermiedene Fehlbuchungen)</span>
-                      <span className="text-[var(--foreground)]">100 %</span>
-                    </div>
-                    <div className="flex justify-between pt-2 border-t border-[var(--border)] font-sans text-[13px]">
-                      <span className="font-semibold">Summe direkte Kosten</span>
-                      <span className="font-bold">140.000 € / Jahr</span>
-                    </div>
-                    <div className="text-[11px] pt-2">
-                      Zusätzlich {impactZahlen.stundenGespartProJahr} Stunden
-                      Projektleiter-Zeit (ohne zusätzlichen Headcount).
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-          >
-            <SavingsAnimation target={impactZahlen.geldGespartProJahrEur} />
-          </motion.div>
+              <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center mb-4">
+                <item.icon size={16} className="text-[var(--scholpp-red)]" />
+              </div>
+              <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
+                {item.title}
+              </div>
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+                {item.body}
+              </div>
+            </motion.div>
+          ))}
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="hairline border bg-white p-8 mb-12"
+        >
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center shrink-0">
+              <ShieldCheck size={16} className="text-[var(--scholpp-red)]" />
+            </div>
+            <div>
+              <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
+                Mensch im Zentrum
+              </div>
+              <div className="text-[14px] text-[var(--muted-foreground)] leading-[1.6] max-w-2xl">
+                Der Agent bereitet vor, der Projektleiter entscheidet. Keine
+                Blackbox — jede Empfehlung ist begründet, jede Quelle
+                nachvollziehbar. SCHOLPPs Betriebsordnung bleibt der Rahmen,
+                nicht eine Option.
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Bottom — CTA */}
         <motion.div

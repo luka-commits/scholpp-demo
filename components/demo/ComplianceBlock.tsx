@@ -10,10 +10,10 @@ export function ComplianceBlock() {
       <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
           <ShieldCheck size={12} />
-          Compliance · alle Checks bestanden
+          Reiseregeln & Tarif · alle Checks bestanden
         </div>
         <div className="text-[11px] text-[var(--muted-foreground)]">
-          Betriebsordnung {betriebsordnung.version} · Tarifvertrag · DRV
+          Betriebsordnung {betriebsordnung.version} · Tarif Sächs. Verkehrsgewerbe · DRV
         </div>
       </div>
       <div className="grid md:grid-cols-2">
