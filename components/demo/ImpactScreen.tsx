@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   RotateCcw,
   Search,
@@ -44,14 +44,17 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           />
         </motion.div>
 
-        <AnimatePresence>
-        {videoEnded && (
-        <>
+        <motion.div
+          initial={false}
+          animate={videoEnded ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          style={{ pointerEvents: videoEnded ? "auto" : "none" }}
+        >
         {/* Was der Agent macht */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          animate={videoEnded ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ delay: 0.1, duration: 0.6 }}
           className="mb-12"
         >
           <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
@@ -223,9 +226,7 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
             </p>
           </div>
         </motion.div>
-        </>
-        )}
-        </AnimatePresence>
+        </motion.div>
 
         <div className="mt-10 text-center">
           <button
