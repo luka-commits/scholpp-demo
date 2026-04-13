@@ -25,6 +25,22 @@ type PolylineOut = {
   distanceMeters: number;
 };
 
+type KandidatOut = {
+  id: string;
+  name: string;
+  stadt: string;
+  fahrzeitMin: number; // Alias auf tSprinterMin (Backwards-Compat)
+  tSprinterMin: number;
+  summeMonteurZugangMin: number;
+  totalCostMin: number;
+  gewaehlt: boolean;
+  breakdown: Array<{
+    monteurId: string;
+    kostenMin: number;
+    pfad: "direkt" | "zum_hub" | "sprinter_fahrer";
+  }>;
+};
+
 type ResponseShape = {
   startNl: {
     id: string;
@@ -34,7 +50,7 @@ type ResponseShape = {
     fahrzeitMin: number;
     begruendung: string;
   };
-  kandidaten: Array<{ id: string; name: string; fahrzeitMin: number }>;
+  kandidaten: KandidatOut[];
   strategien: AnreiseEntscheidung[];
   polylines: PolylineOut[];
   eckdaten: {
@@ -101,25 +117,53 @@ export async function POST(req: NextRequest) {
       fahrzeitNlZurBaustelleMin[nl.id] = row.durationSec / 60;
     });
 
-    // === B) Regel: Sprinter-Start-NL
+    // === A2) Monteure × {Baustelle, alle NL} — Matrix für Total-Cost-Heuristik
+    const monteurOrigins = monteureSel.map((m) => m.heimatKoordinaten);
+    const candidateNls = niederlassungen; // wir filtern später im Optimizer
+    const bigDests: LatLng[] = [
+      baustelle,
+      ...candidateNls.map((n) => n.koordinaten),
+    ];
+    const bigMatrix = await computeRouteMatrix(monteurOrigins, bigDests);
+
+    const fahrzeitMonteurZurBaustelleMin: Record<string, number> = {};
+    const fahrzeitMonteurZurNlMin: Record<
+      string,
+      Record<string, number>
+    > = {};
+    monteureSel.forEach((m) => {
+      fahrzeitMonteurZurNlMin[m.id] = {};
+    });
+    bigMatrix.forEach((row) => {
+      const m = monteureSel[row.originIndex];
+      const minutes = row.durationSec / 60;
+      if (row.destinationIndex === 0) {
+        fahrzeitMonteurZurBaustelleMin[m.id] = minutes;
+      } else {
+        const nl = candidateNls[row.destinationIndex - 1];
+        fahrzeitMonteurZurNlMin[m.id][nl.id] = minutes;
+      }
+    });
+
+    // === B) Regel: Sprinter-Start-NL (Total-Cost-Heuristik)
     const dispatch = selectSprinterStartNl({
       anfrage,
       niederlassungen,
+      monteure: monteureSel,
       fahrzeitNlZurBaustelleMin,
+      fahrzeitMonteurZurBaustelleMin,
+      fahrzeitMonteurZurNlMin,
     });
 
-    // === C) Monteure × {Heimat → Baustelle, Heimat → Start-NL} Matrix
-    const monteurOrigins = monteureSel.map((m) => m.heimatKoordinaten);
-    const dests: LatLng[] = [baustelle, dispatch.startNl.koordinaten];
-    const monteurMatrix = await computeRouteMatrix(monteurOrigins, dests);
-
-    const tDirektMap: Record<string, number> = {};
+    // === C) Abgeleitete Maps für decideAnreise (Start-NL-spezifisch)
+    const tDirektMap: Record<string, number> = {
+      ...fahrzeitMonteurZurBaustelleMin,
+    };
     const tHubMap: Record<string, number> = {};
-    monteurMatrix.forEach((row) => {
-      const m = monteureSel[row.originIndex];
-      const minutes = row.durationSec / 60;
-      if (row.destinationIndex === 0) tDirektMap[m.id] = minutes;
-      else tHubMap[m.id] = minutes;
+    monteureSel.forEach((m) => {
+      tHubMap[m.id] =
+        fahrzeitMonteurZurNlMin[m.id]?.[dispatch.startNl.id] ??
+        Number.POSITIVE_INFINITY;
     });
 
     // === D) Sprinter direct route (Start-NL → Baustelle) for baseline + polyline
@@ -239,8 +283,19 @@ export async function POST(req: NextRequest) {
             durationSec: r.durationSec,
             distanceMeters: r.distanceMeters,
           });
-        } catch {
-          // skip
+        } catch (e) {
+          console.error(
+            `[optimize-route] direkt-Polyline fehlgeschlagen für ${m.id}:`,
+            e,
+          );
+          // Fallback: leere Polyline (Client rendert Luftlinie)
+          polylines.push({
+            kind: "direkt",
+            monteurIds: [m.id],
+            encodedPolyline: "",
+            durationSec: Math.round((s.fahrzeitMin ?? 0) * 60),
+            distanceMeters: 0,
+          });
         }
       }
       if (s.strategie === "bahn_direkt") {
@@ -269,8 +324,18 @@ export async function POST(req: NextRequest) {
             durationSec: r.durationSec,
             distanceMeters: r.distanceMeters,
           });
-        } catch {
-          // skip
+        } catch (e) {
+          console.error(
+            `[optimize-route] zum-hub-Polyline fehlgeschlagen für ${m.id}:`,
+            e,
+          );
+          polylines.push({
+            kind: "direkt",
+            monteurIds: [m.id],
+            encodedPolyline: "",
+            durationSec: 0,
+            distanceMeters: 0,
+          });
         }
       }
     }
@@ -287,7 +352,13 @@ export async function POST(req: NextRequest) {
       kandidaten: dispatch.kandidaten.map((k) => ({
         id: k.nl.id,
         name: k.nl.name,
-        fahrzeitMin: k.fahrzeitMin,
+        stadt: k.nl.stadt,
+        fahrzeitMin: k.tSprinterMin,
+        tSprinterMin: k.tSprinterMin,
+        summeMonteurZugangMin: k.summeMonteurZugangMin,
+        totalCostMin: k.totalCostMin,
+        gewaehlt: k.nl.id === dispatch.startNl.id,
+        breakdown: k.monteurBreakdown,
       })),
       strategien,
       polylines,

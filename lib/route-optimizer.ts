@@ -14,20 +14,50 @@ export type FahrzeitMin = number;
 export type SprinterDispatchInput = {
   anfrage: Anfrage;
   niederlassungen: Niederlassung[];
+  monteure: Monteur[];
   fahrzeitNlZurBaustelleMin: Record<string, FahrzeitMin>;
+  /** Heimat Monteur → Baustelle (direkt, DRIVE) */
+  fahrzeitMonteurZurBaustelleMin: Record<string, FahrzeitMin>;
+  /** Heimat Monteur → NL (DRIVE) — matrix[monteurId][nlId] */
+  fahrzeitMonteurZurNlMin: Record<string, Record<string, FahrzeitMin>>;
+};
+
+export type MonteurZugangBreakdown = {
+  monteurId: string;
+  /** gewählte Kosten (min von direkt / zum-hub / sprinter-fahrer) */
+  kostenMin: FahrzeitMin;
+  pfad: "direkt" | "zum_hub" | "sprinter_fahrer";
+};
+
+export type NlKandidat = {
+  nl: Niederlassung;
+  /** Sprinter-Fahrzeit NL → Baustelle */
+  tSprinterMin: FahrzeitMin;
+  /** Summe Monteur-Zugangskosten an diese NL */
+  summeMonteurZugangMin: FahrzeitMin;
+  /** Total Cost = tSprinterMin + Σ monteur-zugang */
+  totalCostMin: FahrzeitMin;
+  monteurBreakdown: MonteurZugangBreakdown[];
 };
 
 export type SprinterDispatchResult = {
   startNl: Niederlassung;
   fahrzeitMin: FahrzeitMin;
   begruendung: string;
-  kandidaten: Array<{ nl: Niederlassung; fahrzeitMin: FahrzeitMin }>;
+  kandidaten: NlKandidat[];
 };
 
 export function selectSprinterStartNl(
   input: SprinterDispatchInput,
 ): SprinterDispatchResult {
-  const { anfrage, niederlassungen, fahrzeitNlZurBaustelleMin } = input;
+  const {
+    anfrage,
+    niederlassungen,
+    monteure,
+    fahrzeitNlZurBaustelleMin,
+    fahrzeitMonteurZurBaustelleMin,
+    fahrzeitMonteurZurNlMin,
+  } = input;
 
   // 1. Werkzeug-Filter: bei "schwerlast" nur Großniederlassungen
   const werkzeugOk = (n: Niederlassung) =>
@@ -45,24 +75,69 @@ export function selectSprinterStartNl(
     );
   }
 
-  // 2. argmin Fahrzeit
-  const ranked = eligibles
-    .map((nl) => ({
-      nl,
-      fahrzeitMin: fahrzeitNlZurBaustelleMin[nl.id] ?? Number.POSITIVE_INFINITY,
-    }))
-    .sort((a, b) => a.fahrzeitMin - b.fahrzeitMin);
+  // 2. Pro Kandidat-NL: Total-Cost berechnen
+  const kandidaten: NlKandidat[] = eligibles.map((nl) => {
+    const tSprinterMin =
+      fahrzeitNlZurBaustelleMin[nl.id] ?? Number.POSITIVE_INFINITY;
 
-  const winner = ranked[0];
+    const breakdown: MonteurZugangBreakdown[] = monteure.map((m) => {
+      const direkt =
+        fahrzeitMonteurZurBaustelleMin[m.id] ?? Number.POSITIVE_INFINITY;
+      const zumHub =
+        (fahrzeitMonteurZurNlMin[m.id]?.[nl.id] ?? Number.POSITIVE_INFINITY) +
+        tSprinterMin;
+      // sprinter_fahrer: Monteur wohnt "an" der NL (heimNiederlassungId match)
+      // → nur tSprinterMin als Kosten (kein Anfahrtsweg zum Hub)
+      const istLokal = m.heimNiederlassungId === nl.id;
+      const sprinterFahrer = istLokal ? tSprinterMin : Number.POSITIVE_INFINITY;
+
+      const options: Array<[number, MonteurZugangBreakdown["pfad"]]> = [
+        [direkt, "direkt"],
+        [zumHub, "zum_hub"],
+        [sprinterFahrer, "sprinter_fahrer"],
+      ];
+      options.sort((a, b) => a[0] - b[0]);
+      const [kostenMin, pfad] = options[0];
+      return { monteurId: m.id, kostenMin, pfad };
+    });
+
+    const summeMonteurZugangMin = breakdown.reduce(
+      (s, b) => s + (isFinite(b.kostenMin) ? b.kostenMin : 0),
+      0,
+    );
+    const totalCostMin = tSprinterMin + summeMonteurZugangMin;
+
+    return {
+      nl,
+      tSprinterMin,
+      summeMonteurZugangMin,
+      totalCostMin,
+      monteurBreakdown: breakdown,
+    };
+  });
+
+  kandidaten.sort((a, b) => a.totalCostMin - b.totalCostMin);
+  const winner = kandidaten[0];
+  const runnerUp = kandidaten[1];
+
+  const delta = runnerUp
+    ? Math.round(runnerUp.totalCostMin - winner.totalCostMin)
+    : null;
+
+  const werkzeugNote =
+    anfrage.werkzeugAnforderung === "schwerlast"
+      ? " unter NL mit Schwerlast-Werkzeug"
+      : "";
+
+  const begruendung = runnerUp
+    ? `Niedrigste Total-Cost (${Math.round(winner.totalCostMin)} min = ${Math.round(winner.tSprinterMin)} Sprinter + ${Math.round(winner.summeMonteurZugangMin)} Monteur-Zugang)${werkzeugNote}. ${delta} min günstiger als ${runnerUp.nl.stadt}.`
+    : `Niedrigste Total-Cost (${Math.round(winner.totalCostMin)} min)${werkzeugNote}.`;
 
   return {
     startNl: winner.nl,
-    fahrzeitMin: winner.fahrzeitMin,
-    begruendung:
-      anfrage.werkzeugAnforderung === "schwerlast"
-        ? `Kürzeste Fahrzeit zur Baustelle (${Math.round(winner.fahrzeitMin)} min) unter NL mit Schwerlast-Werkzeug`
-        : `Kürzeste Fahrzeit zur Baustelle (${Math.round(winner.fahrzeitMin)} min)`,
-    kandidaten: ranked,
+    fahrzeitMin: winner.tSprinterMin,
+    begruendung,
+    kandidaten,
   };
 }
 

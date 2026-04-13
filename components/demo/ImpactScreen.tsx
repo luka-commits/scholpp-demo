@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Search, Scale, ShieldCheck, Route, LayoutDashboard } from "lucide-react";
+import {
+  RotateCcw,
+  Search,
+  Scale,
+  ShieldCheck,
+  Route,
+  LayoutDashboard,
+  Globe,
+  MapPin,
+  Database,
+  Mail,
+  Bot,
+} from "lucide-react";
 import Link from "next/link";
 
 export function ImpactScreen({ onReset }: { onReset: () => void }) {
@@ -127,56 +139,50 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
             Nach außen eine Oberfläche — dahinter eine saubere Infrastruktur.
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="hairline border bg-white p-6">
-              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
-                Frontend
-              </div>
-              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
-                Ein Dashboard für den Projektleiter.
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
-                Keine neuen Tools zum Lernen. Einsätze planen, Vorschläge
-                prüfen, freigeben — alles in einer Oberfläche.
-              </div>
-            </div>
-            <div className="hairline border bg-white p-6">
-              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
-                Agent-Layer
-              </div>
-              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
-                Der Agent als Recherche- und Vergleichs-Schicht.
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
-                Läuft parallel gegen interne und externe Quellen, scort
-                Optionen und bereitet eine begründete Empfehlung vor.
-              </div>
-            </div>
-            <div className="hairline border bg-white p-6">
-              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
-                Integration
-              </div>
-              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
-                Angebunden an SCHOLPPs Systeme.
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
-                Betriebsordnung, Monteur-Stammdaten und Equipment-Listen
-                werden direkt aus bestehenden Quellen gelesen — keine
-                Parallel-Datenhaltung.
-              </div>
-            </div>
-            <div className="hairline border bg-white p-6">
-              <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-2">
-                Audit & Governance
-              </div>
-              <div className="text-[14px] text-[var(--foreground)] font-medium mb-2">
-                Jeder Schritt protokolliert.
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
-                Eingaben, abgefragte Quellen, Scoring, Freigabe — lückenlos
-                nachvollziehbar. Hosting in Europa, Daten bleiben bei SCHOLPP.
-              </div>
-            </div>
+          <div className="hairline border bg-white p-6">
+            <ul className="space-y-3 text-[13px]">
+              {[
+                {
+                  icon: Globe,
+                  label: "Research-Layer",
+                  desc: "Perplexity API für strukturierte Web-Recherche (Hotel-Meta-Vergleich, Tarif-Lookup).",
+                },
+                {
+                  icon: MapPin,
+                  label: "Geo-Layer",
+                  desc: "Google Routes API für Fahrzeiten-Matrix + Google Maps JS für die Visualisierung.",
+                },
+                {
+                  icon: Database,
+                  label: "Daten-Layer",
+                  desc: "Anbindung an SCHOLPP-Interna (Fleet-DB, Personal-DB, Roomix, Betriebsordnung) via n8n/MCP.",
+                },
+                {
+                  icon: Mail,
+                  label: "Kommunikations-Layer",
+                  desc: "E-Mail (SMTP/IMAP) für Kunden + Buchungs-Bestätigungen, optional Slack/Teams.",
+                },
+                {
+                  icon: Bot,
+                  label: "Agent-Layer",
+                  desc: "Claude 4 Agent-Framework mit Human-in-the-Loop-Approval bei jeder Buchung.",
+                },
+              ].map((row) => (
+                <li key={row.label} className="flex gap-3 items-start">
+                  <span className="w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0">
+                    <row.icon size={14} className="text-[var(--scholpp-red)]" />
+                  </span>
+                  <div>
+                    <div className="font-semibold leading-tight">
+                      {row.label}
+                    </div>
+                    <div className="text-[12px] text-[var(--muted-foreground)] leading-[1.5] mt-0.5">
+                      {row.desc}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </motion.div>
 

@@ -17,6 +17,8 @@ import { formatEur } from "@/lib/utils";
 import { aktiveAnfrage } from "@/data/anfragen";
 import { HotelCard } from "./HotelCard";
 import { RouteMap } from "./RouteMap";
+import { StrategyBlock } from "./StrategyBlock";
+import { NlComparisonBlock } from "./NlComparisonBlock";
 import { VehicleBlock } from "./VehicleBlock";
 import { TeamBlock } from "./TeamBlock";
 import { EquipmentBlock } from "./EquipmentBlock";
@@ -140,6 +142,12 @@ export function ApprovalCard({ onApprove }: { onApprove: () => void }) {
               Anreise · Pooling + Fahrzeug-Optimierung
             </div>
             <RouteMap />
+            <div className="mt-4">
+              <NlComparisonBlock />
+            </div>
+            <div className="mt-4">
+              <StrategyBlock />
+            </div>
             <div className="mt-4">
               <VehicleBlock />
             </div>

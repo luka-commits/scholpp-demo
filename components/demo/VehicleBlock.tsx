@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { fahrzeugOptionen, empfohleneFahrzeugOption } from "@/data/fahrzeuge";
+import { aktiveAnfrage } from "@/data/anfragen";
+import { ausgewaehlteMonteure } from "@/data/monteure";
 import { formatEur } from "@/lib/utils";
 import { Check, ChevronDown, Truck } from "lucide-react";
+import { useRouteOptimization } from "@/lib/use-route-optimization";
 
-const begruendungen = [
-  "Alle 3 Monteure ab Niederlassung Böblingen — Pooling möglich (≤ 15 km Heimat-Distanz)",
-  "2 t Werkzeug muss mit (aus Anfrage) — Sprinter hat Laderaum, kein Extra-Transport nötig",
-  "Sprinter 319 im Fleet frei ab 13.04. 06:00 (SCHOLPP Fleet-DB verifiziert)",
-  "Richtmeister Brandt hat C1E — darf Sprinter mit 2 t Anhänger-Last fahren",
-];
+function buildBegruendungen(startNlName: string | null): string[] {
+  const nlText = startNlName ?? "der zugewiesenen Niederlassung";
+  return [
+    `Sprinter startet ab ${nlText} — Werkzeug + Fahrer ab dort gepoolt`,
+    "2 t Werkzeug muss mit (aus Anfrage) — Sprinter hat Laderaum, kein Extra-Transport nötig",
+    "Sprinter im Fleet frei ab 13.04. 06:00 (SCHOLPP Fleet-DB verifiziert)",
+    "Richtmeister Brandt hat C1E — darf Sprinter mit 2 t Anhänger-Last fahren",
+  ];
+}
 
 export function VehicleBlock() {
   const [showWhy, setShowWhy] = useState(false);
@@ -19,6 +25,15 @@ export function VehicleBlock() {
 
   const empf = empfohleneFahrzeugOption;
   const alternativen = fahrzeugOptionen.filter((f) => !f.empfohlen);
+  const monteurIds = useMemo(
+    () => ausgewaehlteMonteure.map((m) => m.id),
+    [],
+  );
+  const { data } = useRouteOptimization(aktiveAnfrage.id, monteurIds);
+  const startNlName = data?.startNl.stadt ?? null;
+  const begruendungen = buildBegruendungen(
+    data ? `Niederlassung ${data.startNl.stadt}` : null,
+  );
 
   return (
     <div className="hairline border bg-white">
@@ -42,7 +57,8 @@ export function VehicleBlock() {
               Empfehlung
             </div>
             <div className="text-[22px] font-semibold tracking-[-0.01em] leading-tight">
-              1× VW Crafter Sprinter ab Niederlassung Böblingen
+              1× VW Crafter Sprinter ab Niederlassung{" "}
+              {startNlName ?? "(wird berechnet)"}
             </div>
             <div className="text-[13px] text-[var(--muted-foreground)] mt-1.5">
               Team + 2 t Werkzeug in einem Fahrzeug · Fahrer: Richtmeister Brandt (C1E)

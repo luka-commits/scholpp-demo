@@ -1,3 +1,26 @@
+import { ausgewaehlteMonteure } from "./monteure";
+import { niederlassungen, getNiederlassung } from "./niederlassungen";
+
+function buildPersonalSnippets(): string[] {
+  return ausgewaehlteMonteure.map((m) => {
+    const nl = m.heimNiederlassungId
+      ? getNiederlassung(m.heimNiederlassungId)
+      : null;
+    const nlText = nl ? ` · NL ${nl.stadt}` : " · keiner NL zugeordnet";
+    const quali = m.qualifikationen.slice(0, 2).join(" + ");
+    return `${m.name} (${m.heimatort}${nlText}) — ${quali} ✓`;
+  });
+}
+
+function buildFleetSnippets(): string[] {
+  const grosse = niederlassungen.filter((n) => n.fleet.schwerlastWerkzeug);
+  return [
+    `Sprinter (Fleet) verfügbar in ${grosse.length} Großniederlassungen (Schwerlast-Werkzeug)`,
+    `Standard-Werkzeug + Caddy in allen ${niederlassungen.length} Niederlassungen`,
+    "Aktueller Kraftstoff-Satz: 0,32 €/km",
+  ];
+}
+
 export type SourceCardDef = {
   id: string;
   name: string;
@@ -18,11 +41,7 @@ export const sourceCards: SourceCardDef[] = [
     name: "Personal-DB / Quali-Matrix",
     domain: "personal.scholpp.intern",
     typ: "intern",
-    snippets: [
-      "Michael Brandt (Böblingen) — Kran + Hydraulik ✓",
-      "Thomas Weigl (Sindelfingen) — Schweißer + Hydraulik ✓",
-      "Jan Petersen (Leonberg) — Kran + Höhenzugang ✓",
-    ],
+    snippets: buildPersonalSnippets(),
     ergebnis: "3 qualifizierte Monteure, alle verfügbar",
     delay: 200,
     dauer: 2400,
@@ -60,11 +79,7 @@ export const sourceCards: SourceCardDef[] = [
     name: "SCHOLPP Fleet-DB",
     domain: "fleet.scholpp.intern",
     typ: "intern",
-    snippets: [
-      "Sprinter 319 — verfügbar ab 13.04. 06:00",
-      "Caddy Maxi — verfügbar 13.–17.04.",
-      "Aktueller Kraftstoff-Satz: 0,32 €/km",
-    ],
+    snippets: buildFleetSnippets(),
     ergebnis: "3 Fahrzeuge verfügbar",
     delay: 600,
     dauer: 2400,

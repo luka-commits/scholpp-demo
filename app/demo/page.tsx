@@ -8,10 +8,9 @@ import { ScenarioIntro } from "@/components/demo/ScenarioIntro";
 import { InboxView } from "@/components/demo/InboxView";
 import { AgentWorking } from "@/components/demo/AgentWorking";
 import { ApprovalCard } from "@/components/demo/ApprovalCard";
-import { SuccessState } from "@/components/demo/SuccessState";
 import { ImpactScreen } from "@/components/demo/ImpactScreen";
 
-type State = "intro" | "inbox" | "working" | "approval" | "success" | "impact";
+type State = "intro" | "inbox" | "working" | "approval" | "impact";
 
 export default function DemoPage() {
   const [state, setState] = useState<State>("intro");
@@ -35,10 +34,7 @@ export default function DemoPage() {
             {state === "inbox" && <InboxView onStart={() => setState("working")} />}
             {state === "working" && <AgentWorking onDone={() => setState("approval")} />}
             {state === "approval" && (
-              <ApprovalCard onApprove={() => setState("success")} />
-            )}
-            {state === "success" && (
-              <SuccessState onDone={() => setState("impact")} />
+              <ApprovalCard onApprove={() => setState("impact")} />
             )}
             {state === "impact" && <ImpactScreen onReset={reset} />}
           </motion.div>

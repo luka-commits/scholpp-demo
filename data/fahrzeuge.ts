@@ -12,8 +12,9 @@ export type FahrzeugOption = {
   begruendung?: string;
 };
 
-// Hannover ↔ Baustelle, 4 Tage, 4 Monteure, ~2t Werkzeug
-// Kostenbasis: ADAC Autokostenrechner + SCHOLPP Fleet-Management
+// Kostenbasis: ADAC Autokostenrechner + SCHOLPP Fleet-Management.
+// Sprinter-Start-NL wird zur Laufzeit von der Routes-API-Optimierung gewählt
+// (siehe lib/route-optimizer.ts), nicht hier hart kodiert.
 export const fahrzeugOptionen: FahrzeugOption[] = [
   {
     id: "f-status-quo",
