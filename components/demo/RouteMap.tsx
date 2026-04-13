@@ -6,7 +6,7 @@ import {
   Polyline,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { aktiveAnfrage } from "@/data/anfragen";
 import { ausgewaehlteMonteure } from "@/data/monteure";
 import { niederlassungen } from "@/data/niederlassungen";
@@ -33,6 +33,14 @@ type LatLng = { lat: number; lng: number };
 const COLOR_SPRINTER = "#e00028";
 const COLOR_DIREKT = "#5a5a5a";
 const COLOR_BAHN = "#1e6fff";
+
+const STRATEGIE_COLOR: Record<AnreiseStrategie, string> = {
+  sprinter_fahrer: "#e00028",
+  pickup_on_route: "#f5a623",
+  zum_hub_mitfahren: "#f5a623",
+  direkt: "#5a5a5a",
+  bahn_direkt: "#1e6fff",
+};
 
 export function RouteMap() {
   const { isLoaded, loadError } = useJsApiLoader({
@@ -83,6 +91,14 @@ export function RouteMap() {
   }, [data, baustelle]);
 
   const startNlId = data?.startNl.id;
+
+  const monteurStrategieMap = useMemo(() => {
+    const m: Record<string, AnreiseStrategie> = {};
+    data?.strategien.forEach((s) => {
+      m[s.monteurId] = s.strategie;
+    });
+    return m;
+  }, [data]);
 
   const headerSubtitle = data
     ? `Sprinter-Start: ${data.startNl.stadt} · ${Math.round(data.startNl.fahrzeitMin)} min zur Baustelle`
@@ -152,52 +168,90 @@ export function RouteMap() {
             {niederlassungen.map((nl) => {
               const isStart = nl.id === startNlId;
               return (
-                <Marker
-                  key={nl.id}
-                  position={nl.koordinaten}
-                  label={{
-                    text: isStart ? "★" : "N",
-                    color: "white",
-                    fontWeight: "700",
-                    fontSize: isStart ? "14px" : "10px",
-                  }}
-                  icon={{
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: isStart ? 14 : 7,
-                    fillColor: isStart ? "#f5c242" : "#a8a8a8",
-                    fillOpacity: isStart ? 1 : 0.7,
-                    strokeColor: isStart ? "#8a5a00" : "#666",
-                    strokeWeight: isStart ? 3 : 1.5,
-                  }}
-                  title={`${nl.name}${isStart ? " · Sprinter-Start" : ""}`}
-                  zIndex={isStart ? 4 : 1}
-                />
+                <Fragment key={nl.id}>
+                  {isStart && (
+                    <>
+                      {/* Goldener Pulse-Ring (outer, semitransparent) */}
+                      <Marker
+                        position={nl.koordinaten}
+                        clickable={false}
+                        icon={{
+                          path: google.maps.SymbolPath.CIRCLE,
+                          scale: 26,
+                          fillColor: "#f5c242",
+                          fillOpacity: 0.2,
+                          strokeColor: "#f5c242",
+                          strokeOpacity: 0.6,
+                          strokeWeight: 2,
+                        }}
+                        zIndex={3}
+                      />
+                      <Marker
+                        position={nl.koordinaten}
+                        clickable={false}
+                        icon={{
+                          path: google.maps.SymbolPath.CIRCLE,
+                          scale: 20,
+                          fillColor: "#f5c242",
+                          fillOpacity: 0.35,
+                          strokeColor: "#8a5a00",
+                          strokeOpacity: 0.8,
+                          strokeWeight: 1,
+                        }}
+                        zIndex={3}
+                      />
+                    </>
+                  )}
+                  <Marker
+                    position={nl.koordinaten}
+                    label={{
+                      text: isStart ? "★" : "N",
+                      color: "white",
+                      fontWeight: "700",
+                      fontSize: isStart ? "15px" : "10px",
+                    }}
+                    icon={{
+                      path: google.maps.SymbolPath.CIRCLE,
+                      scale: isStart ? 15 : 7,
+                      fillColor: isStart ? "#f5c242" : "#a8a8a8",
+                      fillOpacity: 1,
+                      strokeColor: isStart ? "#8a5a00" : "#666",
+                      strokeWeight: isStart ? 3 : 1.5,
+                    }}
+                    title={`${nl.name}${isStart ? " · Sprinter-Start" : ""}`}
+                    zIndex={isStart ? 5 : 1}
+                  />
+                </Fragment>
               );
             })}
 
-            {/* Heimatorte Monteure */}
-            {ausgewaehlteMonteure.map((m) => (
-              <Marker
-                key={m.id}
-                position={m.heimatKoordinaten}
-                label={{
-                  text: m.kuerzel,
-                  color: "white",
-                  fontWeight: "700",
-                  fontSize: "9px",
-                }}
-                icon={{
-                  path: google.maps.SymbolPath.CIRCLE,
-                  scale: 8,
-                  fillColor: "#e00028",
-                  fillOpacity: 0.85,
-                  strokeColor: "white",
-                  strokeWeight: 1.5,
-                }}
-                title={`${m.name} — ${m.heimatort}`}
-                zIndex={2}
-              />
-            ))}
+            {/* Heimatorte Monteure — größer + farbkodiert nach Strategie */}
+            {ausgewaehlteMonteure.map((m) => {
+              const strat = monteurStrategieMap[m.id];
+              const color = strat ? STRATEGIE_COLOR[strat] : "#e00028";
+              return (
+                <Marker
+                  key={m.id}
+                  position={m.heimatKoordinaten}
+                  label={{
+                    text: m.kuerzel,
+                    color: "white",
+                    fontWeight: "700",
+                    fontSize: "11px",
+                  }}
+                  icon={{
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 13,
+                    fillColor: color,
+                    fillOpacity: 0.95,
+                    strokeColor: "white",
+                    strokeWeight: 2.5,
+                  }}
+                  title={`${m.name} — ${m.heimatort}${strat ? ` · ${ANREISE_LABEL[strat]}` : ""}`}
+                  zIndex={4}
+                />
+              );
+            })}
 
             {/* Baustelle */}
             <Marker
@@ -223,39 +277,36 @@ export function RouteMap() {
             {/* Echte Polylines */}
             {decodedPolylines.map((p, i) => {
               if (!p.path || p.path.length === 0) {
-                // Bahn / fehlende Polyline → Luftlinie als Hilfslinie
-                if (p.kind === "bahn") {
-                  // Heimat → Baustelle als Luftlinie
-                  const monteur = ausgewaehlteMonteure.find(
-                    (m) => m.id === p.monteurIds[0],
-                  );
-                  if (!monteur) return null;
-                  return (
-                    <Polyline
-                      key={`p-${i}`}
-                      path={[monteur.heimatKoordinaten, baustelle]}
-                      options={{
-                        strokeColor: COLOR_BAHN,
-                        strokeOpacity: 0,
-                        strokeWeight: 2,
-                        geodesic: true,
-                        icons: [
-                          {
-                            icon: {
-                              path: "M 0,-1 0,1",
-                              strokeOpacity: 1,
-                              scale: 2,
-                              strokeColor: COLOR_BAHN,
-                            },
-                            offset: "0",
-                            repeat: "10px",
+                // Fallback: Luftlinie (gestrichelt) zeichnen statt zu verstecken
+                const monteur = ausgewaehlteMonteure.find(
+                  (m) => m.id === p.monteurIds[0],
+                );
+                if (!monteur) return null;
+                const color = p.kind === "bahn" ? COLOR_BAHN : COLOR_DIREKT;
+                return (
+                  <Polyline
+                    key={`p-${i}`}
+                    path={[monteur.heimatKoordinaten, baustelle]}
+                    options={{
+                      strokeColor: color,
+                      strokeOpacity: 0,
+                      strokeWeight: 2,
+                      geodesic: true,
+                      icons: [
+                        {
+                          icon: {
+                            path: "M 0,-1 0,1",
+                            strokeOpacity: 1,
+                            scale: 2,
+                            strokeColor: color,
                           },
-                        ],
-                      }}
-                    />
-                  );
-                }
-                return null;
+                          offset: "0",
+                          repeat: "10px",
+                        },
+                      ],
+                    }}
+                  />
+                );
               }
 
               const color =
