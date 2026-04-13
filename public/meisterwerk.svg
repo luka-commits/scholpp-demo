@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 24" width="120" height="16">
+  <rect x="0" y="4" width="16" height="16" fill="#111111"/>
+  <rect x="3" y="7" width="10" height="10" fill="#ffffff"/>
+  <rect x="6" y="10" width="4" height="4" fill="#111111"/>
+  <text x="24" y="18" font-family="Open Sans, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#111111" letter-spacing="0.5">MEISTERWERK</text>
+</svg>
