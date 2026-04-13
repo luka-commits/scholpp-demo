@@ -18,7 +18,7 @@ export const impactZahlen = {
   complianceProzent: 100,
   buchungenProJahr: 500,
   stundenGespartProJahr: 358,
-  geldGespartProJahrEur: 85_000,
+  geldGespartProJahrEur: 140_000,
 };
 
 export const problemZahlen = [

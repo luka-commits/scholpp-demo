@@ -1,160 +1,203 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { impactZahlen } from "@/data/kpis";
 import { formatEur } from "@/lib/utils";
-import { Clock, TrendingUp, ShieldCheck, ArrowRight, RotateCcw } from "lucide-react";
+import { ArrowRight, ChevronDown, RotateCcw, Mail, Calendar } from "lucide-react";
 import Link from "next/link";
+import { SavingsAnimation } from "./SavingsAnimation";
 
 export function ImpactScreen({ onReset }: { onReset: () => void }) {
+  const [showCalc, setShowCalc] = useState(false);
+
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-[var(--muted)]/40 py-16 px-6">
+    <div className="min-h-[calc(100vh-64px)] bg-[var(--muted)]/30 py-16 px-6">
       <div className="max-w-5xl mx-auto">
+        {/* Hero — Endframe Bild des zufriedenen Projektleiters */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="mb-12 overflow-hidden border border-[var(--border)] bg-white"
         >
-          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-4">
-            Ergebnis dieser Buchung
-          </div>
-          <h2 className="text-[36px] leading-[1.1] tracking-[-0.02em] font-semibold">
-            Vom 45-Minuten-Prozess zum 2-Minuten-Freigabe-Klick.
-          </h2>
+          <Image
+            src="/hero-endframe.jpg"
+            alt="Projektleiter nach Freigabe — Einsatz-Reise geplant"
+            width={1920}
+            height={1080}
+            className="w-full h-auto block"
+            priority
+          />
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-px bg-[var(--border)] hairline border mb-10">
-          <Block
-            icon={Clock}
-            delay={0.1}
-            label="Zeit pro Buchung"
-            vorher={`${impactZahlen.zeitVorherMin} min`}
-            nachher={`${impactZahlen.zeitNachherMin} min`}
-            delta={`${impactZahlen.zeitErsparnisProzent} %`}
-            deltaLabel="weniger Zeitaufwand"
-          />
-          <Block
-            icon={TrendingUp}
-            delay={0.25}
-            label="Geld pro Buchung"
-            vorher={formatEur(180)}
-            nachher={formatEur(10)}
-            delta={formatEur(impactZahlen.geldErsparnisProBuchungEur)}
-            deltaLabel="Kostenersparnis"
-          />
-          <Block
-            icon={ShieldCheck}
-            delay={0.4}
-            label="Compliance"
-            vorher="≈ 82 %"
-            nachher={`${impactZahlen.complianceProzent} %`}
-            delta="+18 pp"
-            deltaLabel="Richtlinien-Konformität"
-          />
+        {/* 45 min → 2 min */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center mb-12"
+        >
+          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-5">
+            Ergebnis
+          </div>
+          <div className="flex items-center justify-center gap-6 flex-wrap">
+            <span className="text-[64px] font-bold tracking-[-0.03em] leading-none text-[var(--muted-foreground)] line-through decoration-2">
+              45 min
+            </span>
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.35, duration: 0.45 }}
+              className="origin-left"
+            >
+              <ArrowRight size={40} className="text-[var(--scholpp-red)]" />
+            </motion.div>
+            <motion.span
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.75 }}
+              className="text-[80px] font-bold tracking-[-0.03em] leading-none text-[var(--foreground)]"
+            >
+              2 min
+            </motion.span>
+          </div>
+          <p className="mt-5 text-[15px] text-[var(--muted-foreground)] max-w-xl mx-auto">
+            Vom 45-Minuten-Prozess zum 2-Minuten-Freigabe-Klick — pro Buchung,
+            pro Projektleiter.
+          </p>
+        </motion.div>
+
+        {/* Middle — Hochrechnung + Animation */}
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="hairline border bg-white p-8"
+          >
+            <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-3">
+              Hochrechnung SCHOLPP-weit
+            </div>
+            <div className="text-[56px] font-bold tracking-[-0.03em] leading-none text-[var(--scholpp-red)]">
+              {formatEur(impactZahlen.geldGespartProJahrEur)}
+            </div>
+            <div className="text-[14px] text-[var(--muted-foreground)] mt-2">
+              direkte Ersparnis pro Jahr
+            </div>
+            <button
+              onClick={() => setShowCalc((v) => !v)}
+              className="mt-5 inline-flex items-center gap-1.5 text-[13px] text-[var(--foreground)] font-semibold hover:text-[var(--scholpp-red)] transition-colors"
+            >
+              Wie berechnet?
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${showCalc ? "rotate-180" : ""}`}
+              />
+            </button>
+            <AnimatePresence initial={false}>
+              {showCalc && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-4 pt-4 border-t border-[var(--border)] text-[12px] text-[var(--muted-foreground)] space-y-2 font-mono leading-relaxed">
+                    <div className="flex justify-between">
+                      <span>Einsätze/Jahr (Field Service)</span>
+                      <span className="text-[var(--foreground)]">500</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ø Ersparnis Anreise (Hotel+Fahrzeug)</span>
+                      <span className="text-[var(--foreground)]">170 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Ø PL-Zeit gespart (Team+Equipment+Compliance)</span>
+                      <span className="text-[var(--foreground)]">110 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Compliance-Gewinn (vermiedene Fehlbuchungen)</span>
+                      <span className="text-[var(--foreground)]">100 %</span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-[var(--border)] font-sans text-[13px]">
+                      <span className="font-semibold">Summe direkte Kosten</span>
+                      <span className="font-bold">140.000 € / Jahr</span>
+                    </div>
+                    <div className="text-[11px] pt-2">
+                      Zusätzlich {impactZahlen.stundenGespartProJahr} Stunden
+                      Projektleiter-Zeit (ohne zusätzlichen Headcount).
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <SavingsAnimation target={impactZahlen.geldGespartProJahrEur} />
+          </motion.div>
         </div>
 
+        {/* Bottom — CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.9 }}
           className="hairline border bg-[var(--foreground)] text-white p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6 justify-between"
         >
-          <div>
+          <div className="max-w-2xl">
             <div className="text-[11px] uppercase tracking-[0.12em] text-[var(--scholpp-red)] font-semibold mb-3">
-              Hochrechnung SCHOLPP-weit
+              Nächster Schritt
             </div>
-            <div className="text-[26px] leading-[1.15] tracking-[-0.01em] font-semibold">
-              Bei {impactZahlen.buchungenProJahr} Buchungen pro Jahr:
-              <br />
-              <span className="text-[var(--scholpp-red)]">
-                {impactZahlen.stundenGespartProJahr} h
-              </span>{" "}
-              Zeit ·{" "}
-              <span className="text-[var(--scholpp-red)]">
-                {formatEur(impactZahlen.geldGespartProJahrEur)}
-              </span>{" "}
-              direkte Ersparnis
-            </div>
-            <div className="mt-3 text-[13px] text-white/60">
-              Ohne zusätzliche Headcount-Kosten. Im gleichen Framework folgen Phase-2-Usecases.
-            </div>
+            <h3 className="text-[26px] leading-[1.15] tracking-[-0.01em] font-semibold">
+              Pilot starten — 4 Wochen, Festpreis.
+            </h3>
+            <p className="mt-3 text-[14px] text-white/70 leading-[1.6]">
+              Wir installieren den Agent für 3 eurer Projektleiter. Go-Live in 4
+              Wochen, danach Entscheidung über Rollout.
+            </p>
           </div>
-          <div className="flex flex-col gap-3 md:items-end w-full md:w-auto">
-            <button
-              onClick={onReset}
-              className="inline-flex items-center gap-2 bg-white text-[var(--foreground)] px-6 h-12 font-semibold text-[14px] hover:bg-white/90"
+          <div className="flex flex-col gap-3 w-full md:w-auto">
+            <a
+              href="mailto:philippe@meisterwerk.ai?subject=SCHOLPP%20Pilot%20Einsatz-Koordinator&body=Hallo%20Philippe%2C%0A%0Awir%20m%C3%B6chten%20den%20Pilot%20starten.%20Termin%3F"
+              className="inline-flex items-center gap-2 bg-[var(--scholpp-red)] hover:bg-[var(--scholpp-red-hover)] text-white px-6 h-12 font-semibold text-[14px]"
             >
-              <RotateCcw size={14} />
-              Demo zurücksetzen
-            </button>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-[13px] text-white/70 hover:text-white"
+              <Calendar size={14} />
+              Pilot-Termin vereinbaren
+            </a>
+            <a
+              href="mailto:philippe@meisterwerk.ai"
+              className="inline-flex items-center gap-2 text-[13px] text-white/70 hover:text-white justify-center"
             >
-              Zurück zur Übersicht
-              <ArrowRight size={14} />
-            </Link>
+              <Mail size={12} />
+              philippe@meisterwerk.ai
+            </a>
           </div>
         </motion.div>
+
+        <div className="mt-10 text-center">
+          <button
+            onClick={onReset}
+            className="inline-flex items-center gap-2 text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            <RotateCcw size={12} />
+            Demo zurücksetzen
+          </button>
+          <span className="mx-3 text-[var(--border-strong)]">·</span>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-[13px] text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+          >
+            Zurück zur Übersicht
+          </Link>
+        </div>
       </div>
     </div>
-  );
-}
-
-function Block({
-  icon: Icon,
-  label,
-  vorher,
-  nachher,
-  delta,
-  deltaLabel,
-  delay,
-}: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  label: string;
-  vorher: string;
-  nachher: string;
-  delta: string;
-  deltaLabel: string;
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className="bg-white p-6"
-    >
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-5">
-        <Icon size={12} />
-        {label}
-      </div>
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] mb-1">
-            Vorher
-          </div>
-          <div className="text-[22px] font-semibold line-through text-[var(--muted-foreground)]">
-            {vorher}
-          </div>
-        </div>
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--scholpp-red)] mb-1">
-            Mit Agent
-          </div>
-          <div className="text-[22px] font-bold text-[var(--foreground)]">
-            {nachher}
-          </div>
-        </div>
-      </div>
-      <div className="pt-4 border-t border-[var(--border)]">
-        <div className="text-[28px] font-bold tracking-[-0.02em] text-[var(--success)] leading-none">
-          {delta}
-        </div>
-        <div className="text-[12px] text-[var(--muted-foreground)] mt-1">
-          {deltaLabel}
-        </div>
-      </div>
-    </motion.div>
   );
 }

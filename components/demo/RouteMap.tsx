@@ -1,194 +1,167 @@
 "use client";
 
+import { GoogleMap, Marker, Polyline, useJsApiLoader } from "@react-google-maps/api";
+import { useMemo } from "react";
 import { rankedHotels } from "@/data/scoring";
+import { aktiveAnfrage } from "@/data/anfragen";
 
-// Stylized SVG route map — Baustelle + Top-3 Hotels
+// Approximated hotel coordinates (Hannover / Langenhagen) — good enough for demo
+const hotelCoords: Record<string, { lat: number; lng: number }> = {
+  h1: { lat: 52.4514, lng: 9.7361 }, // IntercityHotel Langenhagen
+  h2: { lat: 52.3744, lng: 9.7386 }, // NH Hannover (Andreaestr)
+  h3: { lat: 52.3208, lng: 9.8022 }, // Best Western Kronsberg
+  h4: { lat: 52.3606, lng: 9.7422 }, // Courtyard Maschsee
+  h5: { lat: 52.4011, lng: 9.6892 }, // B&B Hannover-Nord
+  h9: { lat: 52.377, lng: 9.726 }, // H+ Osterstr
+  h12: { lat: 52.3893, lng: 9.802 }, // Wyndham Atrium
+  h13: { lat: 52.3788, lng: 9.7355 }, // Motel One
+};
+
+const mapStyles: google.maps.MapTypeStyle[] = [
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#f5c242" }],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#5a5a5a" }],
+  },
+];
+
 export function RouteMap() {
-  const baustelle = { x: 620, y: 230, label: "Baustelle", sub: "Langenhagen" };
-  const hotels = rankedHotels.slice(0, 3).map((h, i) => {
-    // Arrange hotels at varied distances visually
-    const positions = [
-      { x: 500, y: 180 }, // closest (top-left of baustelle)
-      { x: 380, y: 300 }, // medium
-      { x: 250, y: 150 }, // further
-    ];
-    return { ...positions[i], name: h.hotel.name, km: h.hotel.entfernungKm, rank: i + 1 };
+  const { isLoaded } = useJsApiLoader({
+    id: "scholpp-gmaps",
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
   });
+
+  const baustelle = aktiveAnfrage.baustelleKoordinaten;
+  const topThree = useMemo(
+    () =>
+      rankedHotels.slice(0, 3).map((r, i) => ({
+        id: r.hotel.id,
+        name: r.hotel.name,
+        km: r.hotel.entfernungKm,
+        rank: i + 1,
+        position: hotelCoords[r.hotel.id] || { lat: 52.4, lng: 9.73 },
+      })),
+    []
+  );
+
+  const center = useMemo(() => {
+    const all = [baustelle, ...topThree.map((h) => h.position)];
+    const lat = all.reduce((s, p) => s + p.lat, 0) / all.length;
+    const lng = all.reduce((s, p) => s + p.lng, 0) / all.length;
+    return { lat, lng };
+  }, [baustelle, topThree]);
 
   return (
     <div className="hairline border bg-white">
       <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold">
-          Routen-Übersicht
+          Routen-Übersicht · Hannover/Langenhagen
         </div>
         <div className="text-[11px] text-[var(--muted-foreground)] font-mono">
           Quelle: Google Maps
         </div>
       </div>
-      <div className="relative bg-[#f5f6f7] overflow-hidden">
-        <svg viewBox="0 0 750 420" className="w-full h-auto block">
-          {/* Background grid */}
-          <defs>
-            <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-              <path
-                d="M 30 0 L 0 0 0 30"
-                fill="none"
-                stroke="#e5e5e5"
-                strokeWidth="0.5"
-              />
-            </pattern>
-            <pattern
-              id="gridBig"
-              width="120"
-              height="120"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 120 0 L 0 0 0 120"
-                fill="none"
-                stroke="#d4d4d4"
-                strokeWidth="0.8"
-              />
-            </pattern>
-          </defs>
-          <rect width="750" height="420" fill="url(#grid)" />
-          <rect width="750" height="420" fill="url(#gridBig)" />
-
-          {/* Water / Maschsee */}
-          <ellipse cx="180" cy="360" rx="90" ry="35" fill="#cfe2ea" />
-          <text x="180" y="395" textAnchor="middle" fontSize="10" fill="#5a7a86">
-            Maschsee
-          </text>
-
-          {/* Highway A2 */}
-          <line
-            x1="0"
-            y1="80"
-            x2="750"
-            y2="110"
-            stroke="#f5c242"
-            strokeWidth="4"
-            strokeLinecap="round"
-          />
-          <text x="40" y="75" fontSize="10" fill="#8a6a10" fontWeight="600">
-            A2
-          </text>
-
-          {/* City label */}
-          <text
-            x="280"
-            y="270"
-            fontSize="11"
-            fill="#8a8a8a"
-            fontWeight="600"
-            letterSpacing="2"
+      <div className="relative h-[340px] bg-[#e9ecef]">
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={{ width: "100%", height: "100%" }}
+            center={center}
+            zoom={11}
+            options={{
+              disableDefaultUI: true,
+              zoomControl: true,
+              styles: mapStyles,
+              gestureHandling: "cooperative",
+              backgroundColor: "#e9ecef",
+            }}
           >
-            HANNOVER
-          </text>
-          <text
-            x="550"
-            y="140"
-            fontSize="11"
-            fill="#8a8a8a"
-            fontWeight="600"
-            letterSpacing="2"
-          >
-            LANGENHAGEN
-          </text>
-
-          {/* Routes from hotels to baustelle */}
-          {hotels.map((h, i) => (
-            <g key={i}>
-              <line
-                x1={h.x}
-                y1={h.y}
-                x2={baustelle.x}
-                y2={baustelle.y}
-                stroke={i === 0 ? "#e00028" : "#a0a0a0"}
-                strokeWidth={i === 0 ? 2.5 : 1.5}
-                strokeDasharray={i === 0 ? "none" : "4 4"}
-              />
-              <text
-                x={(h.x + baustelle.x) / 2}
-                y={(h.y + baustelle.y) / 2 - 6}
-                fontSize="10"
-                fill={i === 0 ? "#e00028" : "#646464"}
-                fontWeight="600"
-                textAnchor="middle"
-              >
-                {h.km} km
-              </text>
-            </g>
-          ))}
-
-          {/* Baustelle marker */}
-          <g>
-            <circle
-              cx={baustelle.x}
-              cy={baustelle.y}
-              r="12"
-              fill="#111111"
-              stroke="white"
-              strokeWidth="3"
+            {/* Baustelle */}
+            <Marker
+              position={baustelle}
+              label={{
+                text: "B",
+                color: "white",
+                fontWeight: "700",
+                fontSize: "13px",
+              }}
+              icon={{
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 14,
+                fillColor: "#111111",
+                fillOpacity: 1,
+                strokeColor: "white",
+                strokeWeight: 3,
+              }}
+              title={`Baustelle — ${aktiveAnfrage.baustelleAdresse}`}
             />
-            <text
-              x={baustelle.x}
-              y={baustelle.y + 4}
-              textAnchor="middle"
-              fontSize="11"
-              fill="white"
-              fontWeight="700"
-            >
-              B
-            </text>
-            <text
-              x={baustelle.x + 18}
-              y={baustelle.y + 2}
-              fontSize="11"
-              fontWeight="700"
-              fill="#111111"
-            >
-              Baustelle
-            </text>
-            <text
-              x={baustelle.x + 18}
-              y={baustelle.y + 16}
-              fontSize="10"
-              fill="#646464"
-            >
-              Münchner Str. 45
-            </text>
-          </g>
-
-          {/* Hotel markers */}
-          {hotels.map((h, i) => (
-            <g key={`m-${i}`}>
-              <circle
-                cx={h.x}
-                cy={h.y}
-                r={i === 0 ? 11 : 9}
-                fill={i === 0 ? "#e00028" : "white"}
-                stroke={i === 0 ? "white" : "#a0a0a0"}
-                strokeWidth={i === 0 ? 3 : 1.5}
+            {/* Hotels */}
+            {topThree.map((h) => (
+              <Marker
+                key={h.id}
+                position={h.position}
+                label={{
+                  text: String(h.rank),
+                  color: h.rank === 1 ? "white" : "#111111",
+                  fontWeight: "700",
+                  fontSize: "12px",
+                }}
+                icon={{
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: h.rank === 1 ? 13 : 11,
+                  fillColor: h.rank === 1 ? "#e00028" : "#ffffff",
+                  fillOpacity: 1,
+                  strokeColor: h.rank === 1 ? "white" : "#646464",
+                  strokeWeight: h.rank === 1 ? 3 : 2,
+                }}
+                title={`#${h.rank} ${h.name} — ${h.km} km`}
               />
-              <text
-                x={h.x}
-                y={h.y + 4}
-                textAnchor="middle"
-                fontSize="11"
-                fill={i === 0 ? "white" : "#111111"}
-                fontWeight="700"
-              >
-                {h.rank}
-              </text>
-            </g>
-          ))}
-        </svg>
+            ))}
+            {/* Connection from Top-1 hotel to baustelle */}
+            <Polyline
+              path={[topThree[0].position, baustelle]}
+              options={{
+                strokeColor: "#e00028",
+                strokeOpacity: 0.9,
+                strokeWeight: 3,
+                geodesic: true,
+              }}
+            />
+            {topThree.slice(1).map((h) => (
+              <Polyline
+                key={h.id}
+                path={[h.position, baustelle]}
+                options={{
+                  strokeColor: "#a0a0a0",
+                  strokeOpacity: 0.7,
+                  strokeWeight: 1.5,
+                  geodesic: true,
+                  icons: [
+                    {
+                      icon: { path: "M 0,-1 0,1", strokeOpacity: 1, scale: 3 },
+                      offset: "0",
+                      repeat: "10px",
+                    },
+                  ],
+                }}
+              />
+            ))}
+          </GoogleMap>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-[12px] text-[var(--muted-foreground)]">
+            Karte wird geladen…
+          </div>
+        )}
       </div>
       <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-5 text-[11px] text-[var(--muted-foreground)]">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-[var(--scholpp-red)]" />
-          Empfehlung #1
+          Empfehlung #1 · {topThree[0].km} km
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-white border border-[var(--border-strong)]" />

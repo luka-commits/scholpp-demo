@@ -1,68 +1,54 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="border-b border-[var(--border)] bg-white">
-      <div className="mx-auto max-w-7xl px-6 pt-20 pb-16 grid md:grid-cols-12 gap-10 items-start">
-        <div className="md:col-span-8">
-          <div className="inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.12em] text-[var(--scholpp-red)] font-semibold mb-6">
+    <section className="bg-white">
+      <div className="grid md:grid-cols-12 min-h-[calc(100vh-4rem)]">
+        <div className="md:col-span-5 flex flex-col justify-center px-6 md:px-12 lg:px-16 py-16 md:py-0">
+          <div className="inline-flex items-center gap-2 text-[12px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-8">
             <span className="w-8 h-px bg-[var(--scholpp-red)]" />
-            Konzept Pilot
+            Live-Demo · Reisekoordinator
           </div>
-          <h1 className="font-sans text-[44px] md:text-[56px] leading-[1.05] tracking-[-0.02em] font-bold text-[var(--foreground)]">
-            Reisekoordinator
+
+          <h1 className="font-sans text-[44px] md:text-[56px] lg:text-[64px] leading-[1.02] tracking-[-0.025em] font-bold text-[var(--foreground)]">
+            Einsatz-Reisen planen
             <br />
-            <span className="text-[var(--muted-foreground)] font-light">
-              Ein digitaler Kollege
-            </span>
-            <br />
-            für eure Projektleiter.
+            <span className="text-[var(--scholpp-red)]">in 2 Minuten</span>
+            <span className="text-[var(--muted-foreground)] font-light"> statt 45.</span>
           </h1>
-          <p className="mt-8 max-w-xl text-[16px] leading-[1.6] text-[var(--muted-foreground)]">
-            Hotelrecherche, Fahrzeug-Optimierung und Richtlinien-Kontrolle für
-            Monteur-Einsätze — automatisiert bis zur Freigabe, jede Entscheidung
-            nachvollziehbar. Eure Projektleiter behalten die Kontrolle, der Agent
-            übernimmt die Fleißarbeit.
+
+          <p className="mt-8 max-w-md text-[17px] leading-[1.55] text-[var(--muted-foreground)]">
+            Ein digitaler Agent recherchiert Hotels, vergleicht Fahrzeuge und prüft
+            die Betriebsordnung. Der Projektleiter klickt nur noch auf Freigeben.
           </p>
-          <div className="mt-10 flex items-center gap-4">
+
+          <div className="mt-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <Link
               href="/demo"
-              className="inline-flex items-center gap-2 bg-[var(--scholpp-red)] hover:bg-[var(--scholpp-red-hover)] text-white px-6 h-12 font-semibold text-[14px] transition-colors"
+              className="inline-flex items-center gap-2 bg-[var(--scholpp-red)] hover:bg-[var(--scholpp-red-hover)] text-white px-8 h-14 font-semibold text-[15px] transition-colors"
             >
-              Live-Demo starten
-              <ArrowRight size={16} />
+              Agent jetzt testen
+              <ArrowRight size={18} />
             </Link>
-            <a
-              href="#problem"
-              className="text-[14px] text-[var(--muted-foreground)] hover:text-[var(--foreground)] font-medium"
-            >
-              Ausgangslage →
-            </a>
+            <span className="text-[13px] text-[var(--muted-foreground)]">
+              3 Minuten · Hannover-Szenario
+            </span>
           </div>
         </div>
-        <div className="md:col-span-4 hairline border bg-[var(--muted)]/40 p-6">
-          <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] mb-3 font-semibold">
-            Pilot-Szenario
-          </div>
-          <dl className="space-y-3 text-[13px]">
-            <div className="flex justify-between border-b border-[var(--border)] pb-2">
-              <dt className="text-[var(--muted-foreground)]">Fachgebiet</dt>
-              <dd className="font-medium">Reisemanagement</dd>
-            </div>
-            <div className="flex justify-between border-b border-[var(--border)] pb-2">
-              <dt className="text-[var(--muted-foreground)]">Mitarbeiter-Kontext</dt>
-              <dd className="font-medium">Projektleiter Field Service</dd>
-            </div>
-            <div className="flex justify-between border-b border-[var(--border)] pb-2">
-              <dt className="text-[var(--muted-foreground)]">Integrationen</dt>
-              <dd className="font-medium">Roomix, Fleet, Kalender</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-[var(--muted-foreground)]">Aufbauzeit</dt>
-              <dd className="font-medium">4 Wochen</dd>
-            </div>
-          </dl>
+
+        <div className="md:col-span-7 relative bg-white flex items-center justify-center overflow-hidden">
+          <video
+            src="/hero.mp4"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover md:object-contain"
+            onEnded={(e) => e.currentTarget.pause()}
+          />
         </div>
       </div>
     </section>
