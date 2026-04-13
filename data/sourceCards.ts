@@ -19,9 +19,9 @@ export const sourceCards: SourceCardDef[] = [
     domain: "personal.scholpp.intern",
     typ: "intern",
     snippets: [
-      "Michael Brandt (Stuttgart) — Kran + Hydraulik ✓",
-      "Thomas Weigl (Frankfurt) — Schweißer + Hydraulik ✓",
-      "Jan Petersen (Hamburg) — Kran + Höhenzugang ✓",
+      "Michael Brandt (Böblingen) — Kran + Hydraulik ✓",
+      "Thomas Weigl (Sindelfingen) — Schweißer + Hydraulik ✓",
+      "Jan Petersen (Leonberg) — Kran + Höhenzugang ✓",
     ],
     ergebnis: "3 qualifizierte Monteure, alle verfügbar",
     delay: 200,

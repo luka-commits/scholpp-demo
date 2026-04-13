@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { RotateCcw, Mail, Calendar, Search, Scale, FileCheck2, ShieldCheck } from "lucide-react";
+import { RotateCcw, Search, Scale, ShieldCheck, Route, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 
 export function ImpactScreen({ onReset }: { onReset: () => void }) {
@@ -34,29 +34,48 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           className="mb-12"
         >
           <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
-            Was der Agent übernimmt
+            5 Kernfunktionen · Feature-Überblick
           </div>
           <h2 className="text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] font-semibold text-[var(--foreground)] max-w-3xl">
-            Recherche, Vergleich und Compliance-Check — der Projektleiter entscheidet.
+            Was der Agent im Alltag für SCHOLPP übernimmt.
           </h2>
+          <p className="mt-4 text-[15px] text-[var(--muted-foreground)] leading-[1.6] max-w-2xl">
+            Fünf Funktionen, die zusammen den Koordinations-Workflow abdecken —
+            von der ersten Recherche bis zum Einsatz-Dashboard.
+          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-4 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {[
             {
               icon: Search,
-              title: "Recherche parallel",
-              body: "Hotels, Fahrzeuge, Zertifikate und Betriebsordnung werden intern und extern gleichzeitig geprüft.",
+              title: "Research verschiedenster Optionen",
+              body: "Hotels, Fahrzeuge und Vor-Ort-Infos werden aus unterschiedlichen Quellen gleichzeitig zusammengetragen.",
+              value: "Kein Tab-Hopping mehr — alle relevanten Optionen in einem Durchlauf.",
             },
             {
               icon: Scale,
-              title: "Vergleich mit Begründung",
-              body: "Optionen nach Preis, Distanz und Compliance bewertet — jede Empfehlung nachvollziehbar.",
+              title: "Scoring verschiedener Variablen",
+              body: "Preis, Distanz, Eignung und weitere Faktoren werden gewichtet und transparent verglichen.",
+              value: "Entscheidungen basieren auf Daten, nicht auf Bauchgefühl.",
             },
             {
-              icon: FileCheck2,
-              title: "Freigabe-Vorschlag",
-              body: "Der Projektleiter bestätigt per Klick. Jeder Schritt und jede Quelle im Audit-Log.",
+              icon: ShieldCheck,
+              title: "Abgleich mit Betriebsordnung",
+              body: "Jeder Vorschlag wird automatisch gegen SCHOLPPs Regeln und Vorgaben geprüft.",
+              value: "Fehlbuchungen werden verhindert, bevor sie entstehen.",
+            },
+            {
+              icon: Route,
+              title: "Organisation der Mitarbeiter",
+              body: "Einsätze und Reisen werden so geplant, dass Routen und Teams optimal zusammenpassen.",
+              value: "Weniger Leerfahrten, bessere Auslastung, entspanntere Monteure.",
+            },
+            {
+              icon: LayoutDashboard,
+              title: "Visuelles Dashboard",
+              body: "Alle geplanten und laufenden Einsätze auf einen Blick — Status, Route, Team, Freigaben.",
+              value: "Der Projektleiter behält den Überblick, ohne fünf Tools zu öffnen.",
             },
           ].map((item, i) => (
             <motion.div
@@ -64,79 +83,46 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 + i * 0.1 }}
-              className="hairline border bg-white p-6"
+              className="hairline border bg-white p-6 relative"
             >
+              <div className="absolute top-4 right-4 text-[11px] font-mono text-[var(--muted-foreground)]">
+                {String(i + 1).padStart(2, "0")}
+              </div>
               <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center mb-4">
                 <item.icon size={16} className="text-[var(--scholpp-red)]" />
               </div>
               <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
                 {item.title}
               </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.6]">
+              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55] mb-3">
                 {item.body}
+              </div>
+              <div className="text-[12px] text-[var(--scholpp-red)] leading-[1.5] font-medium pt-3 border-t border-[var(--border)]">
+                {item.value}
               </div>
             </motion.div>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="hairline border bg-white p-8 mb-12"
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center shrink-0">
-              <ShieldCheck size={16} className="text-[var(--scholpp-red)]" />
-            </div>
-            <div>
-              <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
-                Mensch im Zentrum
-              </div>
-              <div className="text-[14px] text-[var(--muted-foreground)] leading-[1.6] max-w-2xl">
-                Der Agent bereitet vor, der Projektleiter entscheidet. Keine
-                Blackbox — jede Empfehlung ist begründet, jede Quelle
-                nachvollziehbar. SCHOLPPs Betriebsordnung bleibt der Rahmen,
-                nicht eine Option.
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Bottom — CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9 }}
-          className="hairline border bg-[var(--foreground)] text-white p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-6 justify-between"
+          className="hairline border bg-[var(--foreground)] text-white p-8 md:p-10"
         >
           <div className="max-w-2xl">
             <div className="text-[11px] uppercase tracking-[0.12em] text-[var(--scholpp-red)] font-semibold mb-3">
               Nächster Schritt
             </div>
             <h3 className="text-[26px] leading-[1.15] tracking-[-0.01em] font-semibold">
-              Pilot starten — 4 Wochen, Festpreis.
+              Pilot starten.
             </h3>
             <p className="mt-3 text-[14px] text-white/70 leading-[1.6]">
-              Wir installieren den Agent für 3 eurer Projektleiter. Go-Live in 4
-              Wochen, danach Entscheidung über Rollout.
+              Wir installieren den Agent für eine kleine Gruppe Projektleiter,
+              begleiten Go-Live und entscheiden danach gemeinsam über den
+              Rollout.
             </p>
-          </div>
-          <div className="flex flex-col gap-3 w-full md:w-auto">
-            <a
-              href="mailto:philippe@meisterwerk.ai?subject=SCHOLPP%20Pilot%20Einsatz-Koordinator&body=Hallo%20Philippe%2C%0A%0Awir%20m%C3%B6chten%20den%20Pilot%20starten.%20Termin%3F"
-              className="inline-flex items-center gap-2 bg-[var(--scholpp-red)] hover:bg-[var(--scholpp-red-hover)] text-white px-6 h-12 font-semibold text-[14px]"
-            >
-              <Calendar size={14} />
-              Pilot-Termin vereinbaren
-            </a>
-            <a
-              href="mailto:philippe@meisterwerk.ai"
-              className="inline-flex items-center gap-2 text-[13px] text-white/70 hover:text-white justify-center"
-            >
-              <Mail size={12} />
-              philippe@meisterwerk.ai
-            </a>
           </div>
         </motion.div>
 

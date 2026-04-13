@@ -200,16 +200,34 @@ export function InboxView({ onStart }: { onStart: () => void }) {
               totalCount="03"
               titel="Hotel-Präferenzen"
               sub="Default = Betriebsordnung (120 €, 15 km). Überschreibbar pro Fall."
-            ><HotelPrefsBody
-              budget={budget}
-              setBudget={setBudget}
-              maxDistanz={maxDistanz}
-              setMaxDistanz={setMaxDistanz}
-              sammelzimmer={sammelzimmer}
-              setSammelzimmer={setSammelzimmer}
-              fruehstueck={fruehstueck}
-              setFruehstueck={setFruehstueck}
-            /></FormGroup>
+            >
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
+                    <span>Budget-Override</span>
+                    <span className="font-mono text-[var(--scholpp-red)]">{budget} €</span>
+                  </div>
+                  <input type="range" min={60} max={180} step={5} value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full accent-[var(--scholpp-red)]" />
+                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
+                    <span>60 €</span><span>Richtlinie 120 €</span><span>180 €</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
+                    <span>Max. Distanz zur Baustelle</span>
+                    <span className="font-mono text-[var(--scholpp-red)]">{maxDistanz} km</span>
+                  </div>
+                  <input type="range" min={5} max={30} step={1} value={maxDistanz} onChange={(e) => setMaxDistanz(Number(e.target.value))} className="w-full accent-[var(--scholpp-red)]" />
+                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
+                    <span>5 km</span><span>Richtlinie 15 km</span><span>30 km</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-6 mt-5">
+                <Toggle value={sammelzimmer} onChange={setSammelzimmer} label="Monteure gemeinsame Unterkunft" />
+                <Toggle value={fruehstueck} onChange={setFruehstueck} label="Frühstück inkludiert" />
+              </div>
+            </FormGroup>
 
             {/* Gruppe 5: Anfahrt-Strategie (MVP 03) */}
             <FormGroup
@@ -218,7 +236,26 @@ export function InboxView({ onStart }: { onStart: () => void }) {
               totalCount="03"
               titel="Anfahrt-Strategie"
               sub="Agent vergleicht trotzdem alle drei — Präferenz wird gewichtet"
-            ><AnfahrtBody anfahrt={anfahrt} setAnfahrt={setAnfahrt} /></FormGroup>
+            >
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { id: "transporter", label: "Transporter-Pool", sub: "Werkzeug + Team in einem Fahrzeug" },
+                  { id: "ice", label: "ICE-Alternative", sub: "Team per Zug + separater Transporter" },
+                  { id: "gemischt", label: "Gemischt", sub: "Agent entscheidet pro Einsatz" },
+                ] as const).map((opt) => {
+                  const active = anfahrt === opt.id;
+                  return (
+                    <button key={opt.id} type="button" onClick={() => setAnfahrt(opt.id)} className={`text-left px-4 py-3 border transition-colors ${active ? "bg-[var(--scholpp-red)]/[0.05] border-[var(--scholpp-red)]" : "bg-white border-[var(--border-strong)] hover:border-[var(--scholpp-red)]"}`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className={`w-3 h-3 rounded-full border-2 ${active ? "border-[var(--scholpp-red)] bg-[var(--scholpp-red)]" : "border-[var(--border-strong)]"}`} />
+                        <span className="text-[13px] font-semibold">{opt.label}</span>
+                      </div>
+                      <div className="text-[11px] text-[var(--muted-foreground)] leading-snug pl-5">{opt.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </FormGroup>
 
             {aktiveAnfrage.sonderwuensche && (
               <div className="hairline border bg-[var(--muted)]/40 p-4">
@@ -302,12 +339,13 @@ export function InboxView({ onStart }: { onStart: () => void }) {
               </div>
             </FormGroup>
 
-            {/* Gruppe 3: Equipment */}
+            {/* Gruppe B: Equipment */}
             <FormGroup
               icon={Package}
-              nummer="03"
-              titel="Equipment"
-              sub="Bestimmt Fahrzeug-Auswahl"
+              nummer="B"
+              totalCount="—"
+              titel="Equipment-Disposition"
+              sub="Ausbau: Agent prüft Geschirr, Werkzeuge, Prüfplaketten"
             >
               <div className="flex flex-wrap gap-2">
                 {equipmentOptionen.map((opt) => {
@@ -340,143 +378,15 @@ export function InboxView({ onStart }: { onStart: () => void }) {
                 Auto-abgeleitet: <span className="font-semibold text-[var(--foreground)]">Transport-Bedarf {transportBedarf}</span>
               </div>
             </FormGroup>
-
-            {/* Gruppe 4: Hotel-Präferenzen */}
-            <FormGroup
-              icon={Hotel}
-              nummer="04"
-              titel="Hotel-Präferenzen"
-              sub="Überschreibbar pro Fall — Default = Betriebsordnung v2.3"
-            >
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
-                    <span>Budget-Override</span>
-                    <span className="font-mono text-[var(--scholpp-red)]">{budget} €</span>
                   </div>
-                  <input
-                    type="range"
-                    min={60}
-                    max={180}
-                    step={5}
-                    value={budget}
-                    onChange={(e) => setBudget(Number(e.target.value))}
-                    className="w-full accent-[var(--scholpp-red)]"
-                  />
-                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
-                    <span>60 €</span>
-                    <span>Richtlinie 120 €</span>
-                    <span>180 €</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-[12px] font-semibold mb-2">
-                    <span>Max. Distanz zur Baustelle</span>
-                    <span className="font-mono text-[var(--scholpp-red)]">{maxDistanz} km</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={5}
-                    max={30}
-                    step={1}
-                    value={maxDistanz}
-                    onChange={(e) => setMaxDistanz(Number(e.target.value))}
-                    className="w-full accent-[var(--scholpp-red)]"
-                  />
-                  <div className="flex justify-between text-[10px] text-[var(--muted-foreground)] font-mono mt-0.5">
-                    <span>5 km</span>
-                    <span>Richtlinie 15 km</span>
-                    <span>30 km</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-6 mt-5">
-                <Toggle
-                  value={sammelzimmer}
-                  onChange={setSammelzimmer}
-                  label="Monteure gemeinsame Unterkunft"
-                />
-                <Toggle
-                  value={fruehstueck}
-                  onChange={setFruehstueck}
-                  label="Frühstück inkludiert"
-                />
-              </div>
-            </FormGroup>
-
-            {/* Gruppe 5: Anfahrt */}
-            <FormGroup
-              icon={Truck}
-              nummer="05"
-              titel="Anfahrt-Strategie"
-              sub="Agent vergleicht trotzdem alle drei — Präferenz wird gewichtet"
-            >
-              <div className="grid grid-cols-3 gap-2">
-                {(
-                  [
-                    {
-                      id: "transporter",
-                      label: "Transporter-Pool",
-                      sub: "Werkzeug + Team in einem Fahrzeug",
-                    },
-                    {
-                      id: "ice",
-                      label: "ICE-Alternative",
-                      sub: "Team per Zug + separater Transporter",
-                    },
-                    {
-                      id: "gemischt",
-                      label: "Gemischt",
-                      sub: "Agent entscheidet pro Einsatz",
-                    },
-                  ] as const
-                ).map((opt) => {
-                  const active = anfahrt === opt.id;
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setAnfahrt(opt.id)}
-                      className={`text-left px-4 py-3 border transition-colors ${
-                        active
-                          ? "bg-[var(--scholpp-red)]/[0.05] border-[var(--scholpp-red)]"
-                          : "bg-white border-[var(--border-strong)] hover:border-[var(--scholpp-red)]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <div
-                          className={`w-3 h-3 rounded-full border-2 ${
-                            active
-                              ? "border-[var(--scholpp-red)] bg-[var(--scholpp-red)]"
-                              : "border-[var(--border-strong)]"
-                          }`}
-                        />
-                        <span className="text-[13px] font-semibold">{opt.label}</span>
-                      </div>
-                      <div className="text-[11px] text-[var(--muted-foreground)] leading-snug pl-5">
-                        {opt.sub}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </FormGroup>
-
-            {aktiveAnfrage.sonderwuensche && (
-              <div className="hairline border bg-[var(--muted)]/40 p-4">
-                <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--muted-foreground)] font-semibold mb-1">
-                  Sonderwünsche (Freitext)
-                </div>
-                <div className="text-[13px] leading-relaxed">
-                  {aktiveAnfrage.sonderwuensche}
-                </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="mt-8 flex items-center justify-between sticky bottom-0 bg-white py-4 border-t border-[var(--border)]">
             <div className="text-[12px] text-[var(--muted-foreground)]">
-              Formular lebt im Projektleiter-Portal · aktuell Roomix-Web, später direkt eingebettet
+              Formular lebt im Projektleiter-Portal · direkt eingebettet
             </div>
             <button
               onClick={onStart}
@@ -495,12 +405,14 @@ export function InboxView({ onStart }: { onStart: () => void }) {
 function FormGroup({
   icon: Icon,
   nummer,
+  totalCount,
   titel,
   sub,
   children,
 }: {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   nummer: string;
+  totalCount?: string;
   titel: string;
   sub: string;
   children: React.ReactNode;
@@ -514,7 +426,7 @@ function FormGroup({
         <div>
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[10px] text-[var(--muted-foreground)]">
-              {nummer} / 04
+              {nummer}{totalCount ? ` / ${totalCount}` : ""}
             </span>
             <span className="text-[15px] font-semibold tracking-[-0.01em]">
               {titel}
