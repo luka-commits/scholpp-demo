@@ -3,10 +3,11 @@
 import {
   GoogleMap,
   Marker,
+  OverlayView,
   Polyline,
   useJsApiLoader,
 } from "@react-google-maps/api";
-import { Fragment, useMemo } from "react";
+import { Fragment, useEffect, useMemo, useRef } from "react";
 import { aktiveAnfrage } from "@/data/anfragen";
 import { ausgewaehlteMonteure } from "@/data/monteure";
 import { niederlassungen } from "@/data/niederlassungen";
@@ -41,6 +42,35 @@ const STRATEGIE_COLOR: Record<AnreiseStrategie, string> = {
   direkt: "#5a5a5a",
   bahn_direkt: "#1e6fff",
 };
+
+const STRATEGIE_BADGE: Record<AnreiseStrategie, string> = {
+  sprinter_fahrer: "🚐 Sprinter-Fahrer",
+  pickup_on_route: "🟡 Pickup",
+  zum_hub_mitfahren: "🟡 Zum Hub",
+  direkt: "🚗 PKW direkt",
+  bahn_direkt: "🚂 Bahn direkt",
+};
+
+function fmtMin(min: number): string {
+  if (!isFinite(min)) return "–";
+  return `${Math.round(min)} min`;
+}
+
+function midpointOfPath(path: google.maps.LatLng[] | LatLng[]): LatLng {
+  if (!path || path.length === 0) return { lat: 0, lng: 0 };
+  const mid = path[Math.floor(path.length / 2)] as
+    | google.maps.LatLng
+    | LatLng;
+  const lat =
+    typeof (mid as google.maps.LatLng).lat === "function"
+      ? (mid as google.maps.LatLng).lat()
+      : (mid as LatLng).lat;
+  const lng =
+    typeof (mid as google.maps.LatLng).lng === "function"
+      ? (mid as google.maps.LatLng).lng()
+      : (mid as LatLng).lng;
+  return { lat, lng };
+}
 
 export function RouteMap() {
   const { isLoaded, loadError } = useJsApiLoader({
@@ -100,9 +130,33 @@ export function RouteMap() {
     return m;
   }, [data]);
 
+  // Auto-fit bounds — alle aktiven Punkte sichtbar, mit Padding
+  const mapRef = useRef<google.maps.Map | null>(null);
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current || !data) return;
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(baustelle);
+    bounds.extend(data.startNl.koordinaten);
+    ausgewaehlteMonteure.forEach((m) => bounds.extend(m.heimatKoordinaten));
+    mapRef.current.fitBounds(bounds, {
+      top: 70,
+      right: 60,
+      bottom: 70,
+      left: 60,
+    });
+  }, [isLoaded, data, baustelle]);
+
   const headerSubtitle = data
     ? `Sprinter-Start: ${data.startNl.stadt} · ${Math.round(data.startNl.fahrzeitMin)} min zur Baustelle`
     : "Agent berechnet Routen…";
+
+  // Baustellen-Stadt aus Adresse extrahieren ("Münchner Str. 45, 30855 Langenhagen" → "Langenhagen")
+  const baustelleStadt = useMemo(() => {
+    const parts = aktiveAnfrage.baustelleAdresse.split(",");
+    const last = parts[parts.length - 1].trim();
+    // PLZ entfernen
+    return last.replace(/^\d{5}\s*/, "");
+  }, []);
 
   return (
     <div className="hairline border bg-white">
@@ -133,7 +187,7 @@ export function RouteMap() {
         </div>
       )}
 
-      <div className="relative h-[400px] bg-[#e9ecef]">
+      <div className="relative h-[480px] bg-[#e9ecef]">
         {loadError && (
           <div className="absolute inset-0 flex items-center justify-center text-[12px] text-red-700 px-4 text-center">
             Karten-Lib konnte nicht geladen werden. NEXT_PUBLIC_GOOGLE_MAPS_API_KEY prüfen.
@@ -149,6 +203,12 @@ export function RouteMap() {
             mapContainerStyle={{ width: "100%", height: "100%" }}
             center={center}
             zoom={6}
+            onLoad={(map) => {
+              mapRef.current = map;
+            }}
+            onUnmount={() => {
+              mapRef.current = null;
+            }}
             options={{
               disableDefaultUI: true,
               zoomControl: true,
@@ -164,92 +224,161 @@ export function RouteMap() {
               </div>
             )}
 
-            {/* Niederlassungen */}
+            {/* Niederlassungen — nur Sprinter-Start prominent, andere kleine graue Punkte */}
             {niederlassungen.map((nl) => {
               const isStart = nl.id === startNlId;
+              if (!isStart) {
+                return (
+                  <Marker
+                    key={nl.id}
+                    position={nl.koordinaten}
+                    icon={{
+                      path: google.maps.SymbolPath.CIRCLE,
+                      scale: 4,
+                      fillColor: "#b8b8b8",
+                      fillOpacity: 0.7,
+                      strokeColor: "#888",
+                      strokeWeight: 1,
+                    }}
+                    title={nl.name}
+                    zIndex={1}
+                  />
+                );
+              }
               return (
                 <Fragment key={nl.id}>
-                  {isStart && (
-                    <>
-                      {/* Goldener Pulse-Ring (outer, semitransparent) */}
-                      <Marker
-                        position={nl.koordinaten}
-                        clickable={false}
-                        icon={{
-                          path: google.maps.SymbolPath.CIRCLE,
-                          scale: 26,
-                          fillColor: "#f5c242",
-                          fillOpacity: 0.2,
-                          strokeColor: "#f5c242",
-                          strokeOpacity: 0.6,
-                          strokeWeight: 2,
-                        }}
-                        zIndex={3}
-                      />
-                      <Marker
-                        position={nl.koordinaten}
-                        clickable={false}
-                        icon={{
-                          path: google.maps.SymbolPath.CIRCLE,
-                          scale: 20,
-                          fillColor: "#f5c242",
-                          fillOpacity: 0.35,
-                          strokeColor: "#8a5a00",
-                          strokeOpacity: 0.8,
-                          strokeWeight: 1,
-                        }}
-                        zIndex={3}
-                      />
-                    </>
-                  )}
+                  {/* Goldener Pulse-Ring */}
+                  <Marker
+                    position={nl.koordinaten}
+                    clickable={false}
+                    icon={{
+                      path: google.maps.SymbolPath.CIRCLE,
+                      scale: 28,
+                      fillColor: "#f5c242",
+                      fillOpacity: 0.2,
+                      strokeColor: "#f5c242",
+                      strokeOpacity: 0.6,
+                      strokeWeight: 2,
+                    }}
+                    zIndex={3}
+                  />
                   <Marker
                     position={nl.koordinaten}
                     label={{
-                      text: isStart ? "★" : "N",
+                      text: "★",
                       color: "white",
                       fontWeight: "700",
-                      fontSize: isStart ? "15px" : "10px",
+                      fontSize: "16px",
                     }}
                     icon={{
                       path: google.maps.SymbolPath.CIRCLE,
-                      scale: isStart ? 15 : 7,
-                      fillColor: isStart ? "#f5c242" : "#a8a8a8",
+                      scale: 16,
+                      fillColor: "#f5c242",
                       fillOpacity: 1,
-                      strokeColor: isStart ? "#8a5a00" : "#666",
-                      strokeWeight: isStart ? 3 : 1.5,
+                      strokeColor: "#8a5a00",
+                      strokeWeight: 3,
                     }}
-                    title={`${nl.name}${isStart ? " · Sprinter-Start" : ""}`}
-                    zIndex={isStart ? 5 : 1}
+                    title={`${nl.name} · Sprinter-Start`}
+                    zIndex={5}
                   />
+                  {/* HTML-Label */}
+                  <OverlayView
+                    position={nl.koordinaten}
+                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    getPixelPositionOffset={(w, h) => ({
+                      x: -(w / 2),
+                      y: 22,
+                    })}
+                  >
+                    <div
+                      style={{
+                        background: "#f5c242",
+                        color: "#3a2700",
+                        padding: "3px 8px",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        border: "1.5px solid #8a5a00",
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                        fontFamily: "system-ui, sans-serif",
+                      }}
+                    >
+                      🚐 SCHOLPP {nl.stadt} · Sprinter-Start
+                    </div>
+                  </OverlayView>
                 </Fragment>
               );
             })}
 
-            {/* Heimatorte Monteure — größer + farbkodiert nach Strategie */}
+            {/* Heimatorte Monteure — Marker + HTML-Label-Karte */}
             {ausgewaehlteMonteure.map((m) => {
               const strat = monteurStrategieMap[m.id];
               const color = strat ? STRATEGIE_COLOR[strat] : "#e00028";
+              const badge = strat ? STRATEGIE_BADGE[strat] : "";
               return (
-                <Marker
-                  key={m.id}
-                  position={m.heimatKoordinaten}
-                  label={{
-                    text: m.kuerzel,
-                    color: "white",
-                    fontWeight: "700",
-                    fontSize: "11px",
-                  }}
-                  icon={{
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 13,
-                    fillColor: color,
-                    fillOpacity: 0.95,
-                    strokeColor: "white",
-                    strokeWeight: 2.5,
-                  }}
-                  title={`${m.name} — ${m.heimatort}${strat ? ` · ${ANREISE_LABEL[strat]}` : ""}`}
-                  zIndex={4}
-                />
+                <Fragment key={m.id}>
+                  <Marker
+                    position={m.heimatKoordinaten}
+                    label={{
+                      text: m.kuerzel,
+                      color: "white",
+                      fontWeight: "700",
+                      fontSize: "11px",
+                    }}
+                    icon={{
+                      path: google.maps.SymbolPath.CIRCLE,
+                      scale: 13,
+                      fillColor: color,
+                      fillOpacity: 0.95,
+                      strokeColor: "white",
+                      strokeWeight: 2.5,
+                    }}
+                    title={`${m.name} — ${m.heimatort}${strat ? ` · ${ANREISE_LABEL[strat]}` : ""}`}
+                    zIndex={4}
+                  />
+                  <OverlayView
+                    position={m.heimatKoordinaten}
+                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    getPixelPositionOffset={(w, h) => ({
+                      x: -(w / 2),
+                      y: 18,
+                    })}
+                  >
+                    <div
+                      style={{
+                        background: "white",
+                        padding: "3px 7px",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        borderLeft: `3px solid ${color}`,
+                        border: "1px solid rgba(0,0,0,0.15)",
+                        borderLeftWidth: 3,
+                        borderLeftColor: color,
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                        fontFamily: "system-ui, sans-serif",
+                        color: "#1a1a1a",
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      <div>
+                        🏠 {m.name.split(" ").slice(-1)[0]} · {m.heimatort}
+                      </div>
+                      {badge && (
+                        <div
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color,
+                            marginTop: 1,
+                          }}
+                        >
+                          {badge}
+                        </div>
+                      )}
+                    </div>
+                  </OverlayView>
+                </Fragment>
               );
             })}
 
@@ -257,55 +386,112 @@ export function RouteMap() {
             <Marker
               position={baustelle}
               label={{
-                text: "B",
-                color: "white",
-                fontWeight: "700",
-                fontSize: "13px",
+                text: "🎯",
+                fontSize: "16px",
               }}
               icon={{
                 path: google.maps.SymbolPath.CIRCLE,
-                scale: 14,
-                fillColor: "#111111",
+                scale: 18,
+                fillColor: "#e00028",
                 fillOpacity: 1,
                 strokeColor: "white",
-                strokeWeight: 3,
+                strokeWeight: 3.5,
               }}
               title={`Baustelle — ${aktiveAnfrage.baustelleAdresse}`}
-              zIndex={3}
+              zIndex={6}
             />
+            <OverlayView
+              position={baustelle}
+              mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+              getPixelPositionOffset={(w, h) => ({
+                x: -(w / 2),
+                y: 24,
+              })}
+            >
+              <div
+                style={{
+                  background: "#e00028",
+                  color: "white",
+                  padding: "3px 8px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: "1.5px solid #800014",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                  fontFamily: "system-ui, sans-serif",
+                }}
+              >
+                🎯 Baustelle · {baustelleStadt}
+              </div>
+            </OverlayView>
 
-            {/* Echte Polylines */}
+            {/* Echte Polylines + Mittelpunkt-Labels */}
             {decodedPolylines.map((p, i) => {
+              const monteur = ausgewaehlteMonteure.find(
+                (m) => m.id === p.monteurIds[0],
+              );
+              const monteurName = monteur
+                ? monteur.name.split(" ").slice(-1)[0]
+                : "";
+              const durMin = p.durationSec / 60;
+
               if (!p.path || p.path.length === 0) {
-                // Fallback: Luftlinie (gestrichelt) zeichnen statt zu verstecken
-                const monteur = ausgewaehlteMonteure.find(
-                  (m) => m.id === p.monteurIds[0],
-                );
+                // Fallback: Luftlinie (gestrichelt)
                 if (!monteur) return null;
                 const color = p.kind === "bahn" ? COLOR_BAHN : COLOR_DIREKT;
+                const path = [monteur.heimatKoordinaten, baustelle];
+                const mid = midpointOfPath(path);
+                const kindLabel =
+                  p.kind === "bahn" ? "🚂 Bahn" : "🚗 PKW direkt";
                 return (
-                  <Polyline
-                    key={`p-${i}`}
-                    path={[monteur.heimatKoordinaten, baustelle]}
-                    options={{
-                      strokeColor: color,
-                      strokeOpacity: 0,
-                      strokeWeight: 2,
-                      geodesic: true,
-                      icons: [
-                        {
-                          icon: {
-                            path: "M 0,-1 0,1",
-                            strokeOpacity: 1,
-                            scale: 2,
-                            strokeColor: color,
+                  <Fragment key={`p-${i}`}>
+                    <Polyline
+                      path={path}
+                      options={{
+                        strokeColor: color,
+                        strokeOpacity: 0,
+                        strokeWeight: 2,
+                        geodesic: true,
+                        icons: [
+                          {
+                            icon: {
+                              path: "M 0,-1 0,1",
+                              strokeOpacity: 1,
+                              scale: 2,
+                              strokeColor: color,
+                            },
+                            offset: "0",
+                            repeat: "10px",
                           },
-                          offset: "0",
-                          repeat: "10px",
-                        },
-                      ],
-                    }}
-                  />
+                        ],
+                      }}
+                    />
+                    <OverlayView
+                      position={mid}
+                      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                      getPixelPositionOffset={(w, h) => ({
+                        x: -(w / 2),
+                        y: -(h / 2),
+                      })}
+                    >
+                      <div
+                        style={{
+                          background: "white",
+                          color,
+                          padding: "2px 6px",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          border: `1px solid ${color}`,
+                          whiteSpace: "nowrap",
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                          fontFamily: "system-ui, sans-serif",
+                        }}
+                      >
+                        {kindLabel} · {fmtMin(durMin)}
+                        {monteurName ? ` · ${monteurName}` : ""}
+                      </div>
+                    </OverlayView>
+                  </Fragment>
                 );
               }
 
@@ -315,53 +501,134 @@ export function RouteMap() {
                   : p.kind === "bahn"
                     ? COLOR_BAHN
                     : COLOR_DIREKT;
+              const kindLabel =
+                p.kind === "sprinter"
+                  ? "🚐 Sprinter"
+                  : p.kind === "bahn"
+                    ? "🚂 Bahn"
+                    : "🚗 PKW direkt";
+              const mid = midpointOfPath(p.path);
+              // Sprinter zeigt Gesamt-Route (kein einzelner Monteur am Label)
+              const showName = p.kind !== "sprinter" && monteurName;
               return (
-                <Polyline
-                  key={`p-${i}`}
-                  path={p.path}
-                  options={{
-                    strokeColor: color,
-                    strokeOpacity: 0.9,
-                    strokeWeight: p.kind === "sprinter" ? 5 : 3,
-                    geodesic: false,
-                  }}
-                />
+                <Fragment key={`p-${i}`}>
+                  <Polyline
+                    path={p.path}
+                    options={{
+                      strokeColor: color,
+                      strokeOpacity: 0.9,
+                      strokeWeight: p.kind === "sprinter" ? 5 : 3,
+                      geodesic: false,
+                    }}
+                  />
+                  <OverlayView
+                    position={mid}
+                    mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+                    getPixelPositionOffset={(w, h) => ({
+                      x: -(w / 2),
+                      y: -(h / 2),
+                    })}
+                  >
+                    <div
+                      style={{
+                        background: "white",
+                        color,
+                        padding: "2px 6px",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        border: `1px solid ${color}`,
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                        fontFamily: "system-ui, sans-serif",
+                      }}
+                    >
+                      {kindLabel} · {fmtMin(durMin)}
+                      {showName ? ` · ${monteurName}` : ""}
+                    </div>
+                  </OverlayView>
+                </Fragment>
               );
             })}
           </GoogleMap>
         )}
-      </div>
 
-      {/* Legende */}
-      <div className="px-5 py-3 border-t border-[var(--border)] flex items-center gap-5 text-[11px] text-[var(--muted-foreground)] flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-[#e00028]" />
-          Heimat Monteur
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-[#f5c242] border border-[#8a5a00]" />
-          Sprinter-Start-NL
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-[#a8a8a8]" />
-          Andere Niederlassung
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-black" />
-          Baustelle
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-[3px] bg-[#e00028]" />
-          Sprinter-Route
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-[2px] bg-[#5a5a5a]" />
-          Eigen-Anreise
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-4 h-[2px] bg-[#1e6fff] [background-image:linear-gradient(to_right,#1e6fff_50%,transparent_50%)] [background-size:6px_2px]" />
-          Bahn
-        </div>
+        {/* Legende rechts oben — kompakte Box */}
+        {isLoaded && (
+          <div
+            className="absolute top-3 right-3 bg-white/96 border border-[var(--border)] px-3 py-2.5 text-[10.5px] z-10 shadow-sm"
+            style={{ maxWidth: 220 }}
+          >
+            <div className="text-[9.5px] uppercase tracking-wider font-semibold text-[var(--muted-foreground)] mb-1.5">
+              Legende
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span
+                className="inline-block"
+                style={{
+                  width: 18,
+                  height: 3,
+                  background: COLOR_SPRINTER,
+                }}
+              />
+              <span>🚐 Sprinter (mit Pickups)</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1">
+              <span
+                className="inline-block"
+                style={{
+                  width: 18,
+                  height: 2,
+                  backgroundImage: `linear-gradient(to right, ${COLOR_BAHN} 50%, transparent 50%)`,
+                  backgroundSize: "6px 2px",
+                }}
+              />
+              <span>🚂 Bahn (Luftlinie)</span>
+            </div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span
+                className="inline-block"
+                style={{
+                  width: 18,
+                  height: 2,
+                  background: COLOR_DIREKT,
+                }}
+              />
+              <span>🚗 PKW eigene Anreise</span>
+            </div>
+            <div className="border-t border-[var(--border)] pt-1.5 mt-1.5">
+              <div className="flex items-center gap-2 mb-1">
+                <span
+                  className="inline-flex items-center justify-center text-white font-bold"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    background: "#f5c242",
+                    border: "1.5px solid #8a5a00",
+                    borderRadius: "50%",
+                    fontSize: 9,
+                  }}
+                >
+                  ★
+                </span>
+                <span>Sprinter-Start-NL</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block"
+                  style={{
+                    width: 14,
+                    height: 14,
+                    background: "#e00028",
+                    border: "1.5px solid white",
+                    borderRadius: "50%",
+                    boxShadow: "0 0 0 1px #800014",
+                  }}
+                />
+                <span>🎯 Baustelle</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}

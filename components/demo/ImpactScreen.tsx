@@ -50,7 +50,7 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           style={{ pointerEvents: videoEnded ? "auto" : "none" }}
         >
-        {/* Was der Agent macht */}
+        {/* Nach außen / Nach innen — Vergleichs-Tabelle */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={videoEnded ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
@@ -58,148 +58,100 @@ export function ImpactScreen({ onReset }: { onReset: () => void }) {
           className="mb-12"
         >
           <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
-            Nach außen · was der Agent übernimmt
+            Was der Agent macht · Wie er gebaut ist
           </div>
           <h2 className="text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] font-semibold text-[var(--foreground)] max-w-3xl">
-            5 Funktionen, die den Koordinations-Alltag abdecken.
+            Nach außen 5 Funktionen — nach innen 5 Layer.
           </h2>
-          <p className="mt-4 text-[15px] text-[var(--muted-foreground)] leading-[1.6] max-w-2xl">
-            Von der ersten Recherche bis zum Einsatz-Dashboard — alles, was der
-            Projektleiter im Tagesgeschäft sieht.
-          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-          {[
-            {
-              icon: Search,
-              title: "Research verschiedenster Optionen",
-              body: "Hotels, Fahrzeuge und Vor-Ort-Infos werden aus unterschiedlichen Quellen gleichzeitig zusammengetragen.",
-              value: "Kein Tab-Hopping mehr — alle relevanten Optionen in einem Durchlauf.",
-            },
-            {
-              icon: Scale,
-              title: "Scoring verschiedener Variablen",
-              body: "Preis, Distanz, Eignung und weitere Faktoren werden gewichtet und transparent verglichen.",
-              value: "Entscheidungen basieren auf Daten, nicht auf Bauchgefühl.",
-            },
-            {
-              icon: ShieldCheck,
-              title: "Abgleich mit Betriebsordnung",
-              body: "Jeder Vorschlag wird automatisch gegen SCHOLPPs Regeln und Vorgaben geprüft.",
-              value: "Fehlbuchungen werden verhindert, bevor sie entstehen.",
-            },
-            {
-              icon: Route,
-              title: "Organisation der Mitarbeiter",
-              body: "Einsätze und Reisen werden so geplant, dass Routen und Teams optimal zusammenpassen.",
-              value: "Weniger Leerfahrten, bessere Auslastung, entspanntere Monteure.",
-            },
-            {
-              icon: LayoutDashboard,
-              title: "Visuelles Dashboard",
-              body: "Alle geplanten und laufenden Einsätze auf einen Blick — Status, Route, Team, Freigaben.",
-              value: "Der Projektleiter behält den Überblick, ohne fünf Tools zu öffnen.",
-            },
-          ].map((item, i) => (
-            <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.08 }}
-              className="hairline border bg-white p-6 relative"
-            >
-              <div className="absolute top-4 right-4 text-[11px] font-mono text-[var(--muted-foreground)]">
-                {String(i + 1).padStart(2, "0")}
-              </div>
-              <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center mb-4">
-                <item.icon size={16} className="text-[var(--scholpp-red)]" />
-              </div>
-              <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
-                {item.title}
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55] mb-3">
-                {item.body}
-              </div>
-              <div className="text-[12px] text-[var(--scholpp-red)] leading-[1.5] font-medium pt-3 border-t border-[var(--border)]">
-                {item.value}
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Infrastruktur */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mb-12"
-        >
-          <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--scholpp-red)] font-semibold mb-3">
-            Nach innen · was dahinter steckt
+        <div className="hairline border bg-white mb-12 overflow-hidden">
+          <div className="grid grid-cols-2 border-b border-[var(--border)] bg-[var(--muted)]/40">
+            <div className="px-5 py-3 text-[11px] uppercase tracking-[0.12em] text-[var(--muted-foreground)] font-semibold border-r border-[var(--border)]">
+              Nach außen · Funktionen
+            </div>
+            <div className="px-5 py-3 text-[11px] uppercase tracking-[0.12em] text-[var(--muted-foreground)] font-semibold">
+              Nach innen · Infrastruktur
+            </div>
           </div>
-          <h2 className="text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] font-semibold text-[var(--foreground)] max-w-3xl">
-            5 Layer, die den Agent tragen.
-          </h2>
-          <p className="mt-4 text-[15px] text-[var(--muted-foreground)] leading-[1.6] max-w-2xl">
-            Best-of-Breed-Stack — jede Ebene übernimmt genau eine klare Aufgabe.
-          </p>
-        </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {[
             {
-              icon: Globe,
-              title: "Research-Layer",
-              body: "Perplexity API für strukturierte Web-Recherche — Hotel-Meta-Vergleich, Tarif-Lookup, Portal-übergreifend.",
-              value: "Aktuelle, geprüfte Daten statt statische Listen.",
+              outIcon: Search,
+              outTitle: "Research verschiedenster Optionen",
+              outBody: "Hotels, Fahrzeuge, Vor-Ort-Infos — parallel aus allen Quellen.",
+              inIcon: Globe,
+              inTitle: "Research-Layer",
+              inBody: "Perplexity API für strukturierte Web-Recherche, Portal-übergreifend.",
             },
             {
-              icon: MapPin,
-              title: "Geo-Layer",
-              body: "Google Routes API für Fahrzeiten-Matrix, Google Maps JS für die Visualisierung im Dashboard.",
-              value: "Realistische Reisezeiten, nicht Luftlinien-Schätzung.",
+              outIcon: Scale,
+              outTitle: "Scoring verschiedener Variablen",
+              outBody: "Preis, Distanz, Eignung — gewichtet und transparent verglichen.",
+              inIcon: MapPin,
+              inTitle: "Geo-Layer",
+              inBody: "Google Routes API für Fahrzeiten-Matrix, Google Maps JS im Dashboard.",
             },
             {
-              icon: Database,
-              title: "Daten-Layer",
-              body: "Anbindung an SCHOLPP-Interna (Fleet-DB, Personal-DB, Roomix, Betriebsordnung) via n8n/MCP.",
-              value: "Direktzugriff auf Stammdaten — keine Parallel-Datenhaltung.",
+              outIcon: ShieldCheck,
+              outTitle: "Abgleich mit Betriebsordnung",
+              outBody: "Jeder Vorschlag gegen SCHOLPPs Regeln geprüft, bevor er sichtbar wird.",
+              inIcon: Database,
+              inTitle: "Daten-Layer",
+              inBody: "Fleet-DB, Personal-DB, Roomix, Betriebsordnung via n8n/MCP — keine Parallel-Datenhaltung.",
             },
             {
-              icon: Mail,
-              title: "Kommunikations-Layer",
-              body: "E-Mail via SMTP/IMAP für Kunden- und Buchungs-Bestätigungen, optional Slack oder Teams.",
-              value: "Bestehende Kanäle bleiben — keine neuen Tools für die Empfänger.",
+              outIcon: Route,
+              outTitle: "Organisation der Mitarbeiter",
+              outBody: "Einsätze und Reisen so geplant, dass Routen und Teams zusammenpassen.",
+              inIcon: Mail,
+              inTitle: "Kommunikations-Layer",
+              inBody: "E-Mail via SMTP/IMAP für Kunden + Buchungen, optional Slack/Teams.",
             },
             {
-              icon: Bot,
-              title: "Agent-Layer",
-              body: "Claude 4 Agent-Framework mit Human-in-the-Loop-Approval bei jeder Buchung.",
-              value: "Der Mensch entscheidet, das Modell bereitet vor.",
+              outIcon: LayoutDashboard,
+              outTitle: "Visuelles Dashboard",
+              outBody: "Alle Einsätze auf einen Blick — Status, Route, Team, Freigaben.",
+              inIcon: Bot,
+              inTitle: "Agent-Layer",
+              inBody: "Claude 4 Agent-Framework mit Human-in-the-Loop-Approval bei jeder Buchung.",
             },
-          ].map((item, i) => (
+          ].map((row, i) => (
             <motion.div
-              key={item.title}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 + i * 0.08 }}
-              className="hairline border bg-white p-6 relative"
+              key={i}
+              initial={{ opacity: 0, y: 8 }}
+              animate={videoEnded ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+              transition={{ delay: 0.2 + i * 0.07, duration: 0.5 }}
+              className={`grid grid-cols-2 ${i < 4 ? "border-b border-[var(--border)]" : ""}`}
             >
-              <div className="absolute top-4 right-4 text-[11px] font-mono text-[var(--muted-foreground)]">
-                {String(i + 1).padStart(2, "0")}
+              {/* Links: Funktion */}
+              <div className="px-5 py-4 flex gap-3 items-start border-r border-[var(--border)]">
+                <span className="w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0 mt-0.5">
+                  <row.outIcon size={13} className="text-[var(--scholpp-red)]" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold text-[var(--foreground)] leading-tight mb-1">
+                    {String(i + 1).padStart(2, "0")} · {row.outTitle}
+                  </div>
+                  <div className="text-[12px] text-[var(--muted-foreground)] leading-[1.5]">
+                    {row.outBody}
+                  </div>
+                </div>
               </div>
-              <div className="w-10 h-10 border border-[var(--border)] flex items-center justify-center mb-4">
-                <item.icon size={16} className="text-[var(--scholpp-red)]" />
-              </div>
-              <div className="text-[15px] font-semibold text-[var(--foreground)] mb-2">
-                {item.title}
-              </div>
-              <div className="text-[13px] text-[var(--muted-foreground)] leading-[1.55] mb-3">
-                {item.body}
-              </div>
-              <div className="text-[12px] text-[var(--scholpp-red)] leading-[1.5] font-medium pt-3 border-t border-[var(--border)]">
-                {item.value}
+
+              {/* Rechts: Layer */}
+              <div className="px-5 py-4 flex gap-3 items-start">
+                <span className="w-8 h-8 border border-[var(--border)] flex items-center justify-center shrink-0 mt-0.5">
+                  <row.inIcon size={13} className="text-[var(--scholpp-red)]" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold text-[var(--foreground)] leading-tight mb-1">
+                    {row.inTitle}
+                  </div>
+                  <div className="text-[12px] text-[var(--muted-foreground)] leading-[1.5]">
+                    {row.inBody}
+                  </div>
+                </div>
               </div>
             </motion.div>
           ))}
